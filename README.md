@@ -1,28 +1,30 @@
-# AnimeClub Site
+# AnimeClub
 
-Monorepo du site AnimeClub.
+AnimeClub is a community web app for building and sharing personal anime and manga libraries.
 
-## Structure
+It lets users create an account, track watch/read progress, manage favorites, browse anime and manga catalog entries, customize public profiles, exchange messages, and discover activity from other members. The repository contains the production website only: a Spring backend and an Angular frontend.
+
+The Aniko Discord bot is intentionally kept in a separate repository.
+
+## Repository Structure
 
 ```text
-apps/backend   Backend Java/Spring
-apps/frontend  Frontend Angular
-docs           Documentation projet
-deploy         Releases locales generees, non versionnees
+apps/backend   Java/Spring backend
+apps/frontend  Angular frontend
+docs           Project documentation
+deploy         Local release packages, not versioned
 ```
 
-Le bot Discord Aniko est volontairement separe et doit avoir son propre depot.
+## Local Commands
 
-## Commandes locales
-
-Backend :
+Backend:
 
 ```powershell
 cd C:\Codex\AnimeClub\apps\backend
 .\mvnw.cmd clean package
 ```
 
-Frontend :
+Frontend:
 
 ```powershell
 cd C:\Codex\AnimeClub\apps\frontend
@@ -30,13 +32,13 @@ npm install
 npm run build
 ```
 
-Build complet sans deployer :
+Full local build without deploying:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Dono\Documents\Scripts\deploy-prod.ps1" -Target Site -NoRemote
 ```
 
-Deploiement production :
+Production deployment:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Dono\Documents\Scripts\deploy-prod.ps1" -Target Site
@@ -44,7 +46,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Dono\Documents\Scr
 
 ## Secrets
 
-Les secrets de production ne doivent jamais etre versionnes. Sur Atlas, ils restent dans :
+Production secrets must never be committed. On Atlas, they remain in:
 
 ```text
 /etc/animeclub/backend.env
