@@ -1,0 +1,71 @@
+# Runtime/build outputs
+deploy/
+apps/backend/target/
+apps/backend/data/
+apps/backend/logs/
+apps/frontend/dist/
+apps/frontend/node_modules/
+apps/frontend/.angular/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+*.secret
+*.secrets
+
+# Logs
+*.log
+*.err.log
+*.out.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Codex/browser temporary artifacts
+.codex-logs/
+Codex/
+.tmp-*/
+.tmp-*
+tmp/
+temp/
+
+# Generated verification screenshots
+*.png
+*.jpg
+*.jpeg
+*.webp
+/*.ico
+docs/**/*.png
+docs/**/*.jpg
+docs/**/*.jpeg
+docs/**/*.webp
+!apps/frontend/src/**/*.png
+!apps/frontend/src/**/*.jpg
+!apps/frontend/src/**/*.jpeg
+!apps/frontend/src/**/*.webp
+!apps/frontend/src/**/*.ico
+
+# IDEs and OS files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Java/Maven
+.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+replay_pid*
+
+# Test/coverage artifacts
+coverage/
+.nyc_output/
+out/
+out-tsc/

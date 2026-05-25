@@ -1,0 +1,688 @@
+:host {
+  position: fixed;
+  right: 20px;
+  bottom: 18px;
+  z-index: 96;
+}
+
+.messages-dock {
+  position: relative;
+  display: grid;
+  justify-items: end;
+  color: #f4ead8;
+  font-family: Montserrat, Arial, sans-serif;
+}
+
+.messages-dock-panel {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  width: min(380px, calc(100vw - 28px));
+  height: min(560px, calc(100vh - 118px));
+  overflow: hidden;
+  border: 1px solid rgba(245, 222, 179, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(160deg, rgba(28, 32, 26, 0.94), rgba(8, 9, 8, 0.96) 62%),
+    rgba(9, 10, 8, 0.96);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(18px);
+  animation: dock-panel-in 160ms ease-out;
+}
+
+.dock-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 66px;
+  border-bottom: 1px solid rgba(245, 222, 179, 0.12);
+  background: rgba(240, 179, 95, 0.08);
+  padding: 10px;
+}
+
+.dock-title {
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / 3;
+}
+
+.dock-title strong,
+.dock-chat-profile strong {
+  color: #fff4e2;
+  font-size: 1rem;
+  font-weight: 1000;
+}
+
+.dock-title small,
+.dock-chat-profile small {
+  color: #d7cdbb;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.dock-actions {
+  display: flex;
+  gap: 6px;
+  justify-self: end;
+}
+
+.dock-icon-button,
+.dock-icon-link,
+.messages-dock-launcher,
+.dock-composer button {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  cursor: pointer;
+}
+
+.dock-icon-button,
+.dock-icon-link {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(245, 222, 179, 0.16);
+  border-radius: 8px;
+  background: rgba(12, 13, 11, 0.6);
+  color: #f4ead8;
+}
+
+.dock-icon-button:hover,
+.dock-icon-button:focus-visible,
+.dock-icon-link:hover,
+.dock-icon-link:focus-visible {
+  border-color: rgba(240, 179, 95, 0.48);
+  background: rgba(240, 179, 95, 0.14);
+}
+
+.dock-icon-button svg,
+.dock-icon-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dock-chat-profile {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dock-chat-profile > span:last-child,
+.dock-friend-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.dock-chat-profile strong,
+.dock-chat-profile small,
+.dock-friend-copy strong,
+.dock-friend-copy em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock-avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(245, 222, 179, 0.22);
+  border-radius: 50%;
+  background: #2d3927;
+  color: #fff4e2;
+  flex: 0 0 auto;
+}
+
+.dock-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.dock-avatar i {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.dock-list,
+.dock-thread {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.dock-list-shell {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dock-list {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 6px;
+  padding: 8px 8px 76px;
+}
+
+.dock-online-strip {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(245, 222, 179, 0.1);
+  background: rgba(5, 6, 5, 0.22);
+  padding: 10px 12px;
+}
+
+.dock-online-bubble {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  width: 58px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dock-online-bubble small {
+  display: block;
+  max-width: 58px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(244, 234, 216, 0.1);
+  color: #d7cdbb;
+  font-size: 0.64rem;
+  font-weight: 850;
+  line-height: 1.15;
+  padding: 3px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock-online-bubble .dock-avatar {
+  width: 46px;
+  border-color: rgba(53, 199, 107, 0.48);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.dock-online-bubble:is(:hover, :focus-visible) .dock-avatar {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(53, 199, 107, 0.16);
+}
+
+.dock-friend-row {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.dock-friend {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 8px 58px 8px 8px;
+  text-align: left;
+}
+
+.dock-friend-row:hover,
+.dock-friend-row:focus-within,
+.dock-friend-row.menu-open {
+  border-color: rgba(240, 179, 95, 0.36);
+  background: rgba(240, 179, 95, 0.12);
+}
+
+.dock-friend-copy strong {
+  color: #fff4e2;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.dock-friend-copy em {
+  color: #afa79a;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.dock-friend-meta {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.dock-friend-meta small {
+  color: #918a7e;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.dock-friend-meta b,
+.messages-dock-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #d94343;
+  color: #fff6ed;
+  font-size: 0.7rem;
+  font-weight: 1000;
+  padding: 0 6px;
+}
+
+.dock-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.dock-message {
+  display: grid;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  gap: 4px;
+  max-width: 82%;
+  border: 1px solid rgba(245, 222, 179, 0.12);
+  border-radius: 8px;
+  background: rgba(5, 6, 5, 0.72);
+  padding: 9px 11px;
+}
+
+.dock-message.own {
+  align-self: flex-end;
+  border-color: rgba(240, 179, 95, 0.28);
+  background: linear-gradient(135deg, rgba(240, 179, 95, 0.3), rgba(86, 55, 22, 0.4));
+}
+
+.dock-message.image-only {
+  position: relative;
+}
+
+.dock-message p,
+.dock-state,
+.dock-feedback,
+.dock-empty strong,
+.dock-empty small {
+  margin: 0;
+}
+
+.dock-message p {
+  color: #fff4e2;
+  font-size: 0.88rem;
+  font-weight: 750;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.dock-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-height: 15px;
+}
+
+.dock-message-meta small {
+  color: #cfc1ad;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.dock-message-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 17px;
+  height: 12px;
+  color: #c0c9d4;
+  line-height: 1;
+}
+
+.dock-message-status-check {
+  display: block;
+  width: 7px;
+  height: 4px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(-45deg);
+}
+
+.dock-message-status.read {
+  width: 20px;
+}
+
+.dock-message-status.read .dock-message-status-check + .dock-message-status-check {
+  margin-left: -3px;
+}
+
+.dock-message-status.sent {
+  color: #b8c3ce;
+  filter:
+    drop-shadow(0 0 4px rgba(184, 195, 206, 0.72))
+    drop-shadow(0 0 10px rgba(184, 195, 206, 0.36));
+  text-shadow:
+    0 0 6px rgba(184, 195, 206, 0.7),
+    0 0 14px rgba(184, 195, 206, 0.34);
+}
+
+.dock-message-status.delivered,
+.dock-message-status.read {
+  color: #6dffad;
+  filter:
+    drop-shadow(0 0 4px rgba(109, 255, 173, 0.74))
+    drop-shadow(0 0 12px rgba(45, 255, 145, 0.45));
+  text-shadow:
+    0 0 7px rgba(109, 255, 173, 0.74),
+    0 0 18px rgba(45, 255, 145, 0.45);
+}
+
+.dock-message.image-only .dock-message-meta {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  z-index: 2;
+  gap: 5px;
+  border-radius: 6px;
+  background: rgba(5, 6, 5, 0.62);
+  line-height: 1;
+  padding: 3px 5px;
+}
+
+.dock-message.image-only .dock-message-meta small {
+  color: #fff4e2;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.dock-state,
+.dock-empty {
+  color: #cfc1ad;
+  font-weight: 850;
+  padding: 16px;
+  text-align: center;
+}
+
+.dock-empty {
+  display: grid;
+  gap: 6px;
+}
+
+.dock-empty strong {
+  color: #fff4e2;
+}
+
+.dock-empty small {
+  color: #afa79a;
+}
+
+.dock-feedback {
+  border-top: 1px solid rgba(245, 222, 179, 0.1);
+  color: #ffb5a8;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 8px 12px 0;
+}
+
+.dock-composer {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  gap: 8px;
+  align-items: end;
+  border-top: 1px solid rgba(245, 222, 179, 0.12);
+  background: rgba(5, 6, 5, 0.45);
+  padding: 10px;
+}
+
+.dock-image-input {
+  display: none;
+}
+
+.dock-image-preview {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 54px minmax(0, 1fr) 30px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(245, 222, 179, 0.13);
+  border-radius: 8px;
+  background: rgba(8, 9, 8, 0.62);
+  padding: 6px;
+}
+
+.dock-image-preview img {
+  width: 54px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.dock-image-preview span {
+  overflow: hidden;
+  color: #f4ead8;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock-image-preview button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 181, 168, 0.24);
+  border-radius: 8px;
+  background: rgba(216, 67, 67, 0.16);
+  color: #ffd4d4;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.dock-composer textarea {
+  width: 100%;
+  min-height: 42px;
+  field-sizing: content;
+  overflow-y: hidden;
+  resize: none;
+  border: 1px solid rgba(245, 222, 179, 0.16);
+  border-radius: 8px;
+  outline: none;
+  background: rgba(8, 9, 8, 0.82);
+  color: #f4ead8;
+  font: inherit;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  padding: 11px;
+  scrollbar-width: none;
+}
+
+.dock-composer textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.dock-composer textarea:focus {
+  border-color: rgba(240, 179, 95, 0.52);
+  box-shadow: 0 0 0 3px rgba(240, 179, 95, 0.12);
+}
+
+.dock-composer button {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #f0b35f;
+  color: #10110e;
+}
+
+.dock-composer .dock-attach-button {
+  border: 1px solid rgba(245, 222, 179, 0.16);
+  background: rgba(12, 13, 11, 0.68);
+  color: #f4ead8;
+}
+
+.dock-composer button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.dock-composer button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.messages-dock-launcher {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0b35f, #ffb05c);
+  color: #10110e;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.messages-dock-launcher:hover,
+.messages-dock-launcher:focus-visible,
+.messages-dock.open .messages-dock-launcher {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.56);
+}
+
+.messages-dock-launcher svg {
+  width: 26px;
+  height: 26px;
+}
+
+.dock-new-conversation-button {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 5;
+}
+
+.dock-new-conversation-button svg {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
+
+.dock-new-conversation-button:is(:hover, :focus-visible, .open) svg {
+  transform: rotate(45deg);
+}
+
+.messages-dock-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  border: 2px solid #070806;
+}
+
+.dock-image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  padding: 34px;
+}
+
+.dock-image-viewer img {
+  display: block;
+  max-width: min(1120px, 94vw);
+  max-height: 88vh;
+  border: 1px solid rgba(244, 234, 216, 0.2);
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.62);
+}
+
+.dock-image-viewer-close {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(244, 234, 216, 0.24);
+  border-radius: 8px;
+  background: rgba(8, 9, 8, 0.78);
+  color: #fff4e2;
+  cursor: pointer;
+  font-size: 1.55rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dock-image-viewer-close:hover,
+.dock-image-viewer-close:focus-visible {
+  border-color: rgba(240, 179, 95, 0.5);
+  background: rgba(240, 179, 95, 0.14);
+}
+
+svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+@keyframes dock-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  :host {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .messages-dock-panel {
+    bottom: 68px;
+    height: min(520px, calc(100vh - 96px));
+    width: calc(100vw - 24px);
+  }
+}

@@ -1,0 +1,34 @@
+@if (toasts().length > 0) {
+  <div class="notification-toasts presence-online-toasts" aria-live="polite" aria-atomic="false">
+    @for (toast of toasts(); track toast.id) {
+      <article class="notification-toast presence-online-toast">
+        <button type="button" class="notification-toast-content" (click)="openProfile(toast)">
+          <span
+            class="notification-toast-avatar presence-online-avatar"
+            [style.background-image]="profilePicture(toast.profile) ? 'url(' + profilePicture(toast.profile) + ')' : null"
+          >
+            @if (!profilePicture(toast.profile)) {
+              {{ displayName(toast.profile).slice(0, 1).toUpperCase() }}
+            }
+            <i class="presence-live-dot" aria-hidden="true"></i>
+          </span>
+
+          <span class="notification-toast-copy presence-online-copy">
+            <small>En ligne</small>
+            <strong>{{ displayName(toast.profile) }} est connecté</strong>
+            <em>@{{ toast.profile.pseudo }}</em>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="notification-toast-close"
+          aria-label="Masquer la notification"
+          (click)="dismiss(toast.id)"
+        >
+          &times;
+        </button>
+      </article>
+    }
+  </div>
+}

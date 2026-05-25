@@ -1,0 +1,61 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.confirm-page {
+  min-height: 100vh;
+  background-image:
+    linear-gradient(180deg, rgba(20, 20, 20, 0.2), rgba(20, 20, 20, 0.78)),
+    url('../ressources/images/inscription.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.container-form {
+  display: flex;
+  width: min(600px, calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 90vh;
+  align-items: center;
+}
+
+mat-card {
+  width: 100%;
+  border: 2px solid #ccb1a5;
+  background: rgba(251, 201, 159, 0.72);
+  background-image: linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(245, 237, 228, 0.9) 40%);
+}
+
+.content {
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  text-align: center;
+}
+
+.eyebrow {
+  color: #6d4532;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  color: #3e261b;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 2.2rem;
+}
+
+p,
+.state {
+  color: #3e261b;
+}

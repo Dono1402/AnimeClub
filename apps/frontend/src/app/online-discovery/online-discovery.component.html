@@ -1,0 +1,94 @@
+<app-menu-bar />
+
+<main class="online-page">
+  <section class="online-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Communauté</p>
+      <h1>Profils en ligne</h1>
+      <p>Découvre les membres connectés qui ont autorisé leur apparition ici.</p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" mat-raised-button (click)="refresh()" [disabled]="refreshing()">
+        <span class="button-icon refresh-icon" aria-hidden="true"></span>
+        {{ refreshing() ? 'Actualisation...' : 'Rafraîchir' }}
+      </button>
+      <a mat-stroked-button routerLink="/following">
+        <span class="button-icon back-icon" aria-hidden="true"></span>
+        Mes suivis
+      </a>
+    </div>
+  </section>
+
+  <section class="online-panel">
+    <div class="panel-toolbar">
+      <div>
+        <p class="eyebrow">Disponibles</p>
+        <h2>{{ countLabel() }}</h2>
+      </div>
+
+      <label class="search-box">
+        <span class="search-icon" aria-hidden="true"></span>
+        <input
+          type="search"
+          placeholder="Rechercher un profil"
+          [value]="profileSearch()"
+          (input)="setProfileSearch($event)"
+        />
+        @if (profileSearch().trim()) {
+          <button type="button" aria-label="Effacer la recherche" (click)="clearProfileSearch()">x</button>
+        }
+      </label>
+    </div>
+
+    @if (feedback()) {
+      <p class="feedback">{{ feedback() }}</p>
+    }
+
+    @if (loading()) {
+      <div class="state-panel">Chargement des profils...</div>
+    } @else {
+      <div class="profile-grid">
+        @for (profile of filteredProfiles(); track profile.id) {
+          <article class="profile-card">
+            <a class="profile-main" [routerLink]="['/profile', profile.pseudo]">
+              <span class="profile-avatar">
+                @if (profilePicture(profile); as pictureUrl) {
+                  <img [src]="pictureUrl" [alt]="displayName(profile)" loading="lazy" />
+                } @else {
+                  <i>{{ initials(profile) }}</i>
+                }
+                <span class="presence-dot" aria-hidden="true"></span>
+              </span>
+
+              <span class="profile-copy">
+                <strong>{{ displayName(profile) }}</strong>
+                <small>@{{ profile.pseudo }}</small>
+                <em>{{ profileSocialLine(profile) }}</em>
+              </span>
+            </a>
+
+            <p class="profile-status">{{ profileStatusLine(profile) }}</p>
+
+            <div class="profile-actions">
+              <a class="ghost-action" [routerLink]="['/profile', profile.pseudo]">Voir le profil</a>
+              <button
+                type="button"
+                class="primary-action"
+                (click)="follow(profile)"
+                [disabled]="isFollowPending(profile.id)"
+              >
+                {{ isFollowPending(profile.id) ? 'Ajout...' : 'Suivre' }}
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-state">
+            <strong>{{ emptyMessage() }}</strong>
+            <span>La liste se met à jour automatiquement quand des profils deviennent disponibles.</span>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</main>

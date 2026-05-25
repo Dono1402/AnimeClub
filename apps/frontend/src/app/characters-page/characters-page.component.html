@@ -1,0 +1,525 @@
+<app-menu-bar />
+
+<main class="characters-page">
+  <div class="backdrop" [style.background-image]="'url(' + backgroundImageUrl + ')'"></div>
+
+  <section class="catalog-hero content-shell">
+    <div class="hero-copy">
+      <h1>Personnages</h1>
+      <p>Explore les héros, rivaux et personnages marquants de tes univers favoris.</p>
+    </div>
+
+    <div class="hero-stats" aria-label="Statistiques du catalogue personnages">
+      <article class="stat-card">
+        <span class="stat-icon users-icon" aria-hidden="true"></span>
+        <strong>{{ formatNumber(totalItems()) }}</strong>
+        <span>personnages</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon book-icon" aria-hidden="true"></span>
+        <strong>{{ formatNumber(linkedUniverseCount()) }}</strong>
+        <span>séries liées</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon heart-icon" aria-hidden="true"></span>
+        <strong>{{ favoriteShortLabel(favoriteTotal()) }}</strong>
+        <span>favoris utilisateurs</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="dashboard-shell content-shell" aria-label="Catalogue des personnages">
+    <aside class="side-panel discovery-panel" aria-label="Découvrir">
+      <header class="panel-title">
+        <span class="title-icon star-icon" aria-hidden="true"></span>
+        <h2>Découvrir</h2>
+      </header>
+
+      <div class="role-list" aria-label="Filtrer par rôle">
+        @for (role of sidebarRoleOptions(); track role.value) {
+          <button
+            class="role-filter"
+            type="button"
+            [class.active]="selectedRole() === role.value"
+            [class.main-role]="role.tone === 'main'"
+            [class.supporting-role]="role.tone === 'supporting'"
+            [class.antagonist-role]="role.tone === 'antagonist'"
+            [class.mascot-role]="role.tone === 'mascot'"
+            (click)="selectRole(selectedRole() === role.value ? 'all' : role.value)"
+          >
+            <span class="role-icon" aria-hidden="true"></span>
+            <span>{{ role.label }}</span>
+            <strong>{{ formatNumber(role.count) }}</strong>
+          </button>
+        }
+      </div>
+
+      <section class="universes-block" aria-label="Univers populaires">
+        <header class="panel-title compact">
+          <span class="title-icon outline-star-icon" aria-hidden="true"></span>
+          <h2>Univers populaires</h2>
+        </header>
+
+        <div class="universe-list">
+          @for (universe of visibleUniverses(); track trackUniverse($index, universe)) {
+            <button
+              class="universe-button"
+              type="button"
+              [class.active]="selectedUniverse() === universe.value"
+              (click)="selectUniverse(universe.value)"
+            >
+              @if (universe.imageUrl) {
+                <img [src]="universe.imageUrl" [alt]="universe.label" loading="lazy" />
+              } @else {
+                <span class="universe-placeholder" aria-hidden="true">{{ universe.label.slice(0, 1) }}</span>
+              }
+              <span>
+                <strong>{{ universe.label }}</strong>
+                <small>{{ formatNumber(universe.count) }} personnages</small>
+              </span>
+            </button>
+          } @empty {
+            <p class="panel-empty">Les univers apparaîtront après le chargement du catalogue.</p>
+          }
+        </div>
+
+        @if (universeSummaries().length > 5) {
+          <button class="panel-link" type="button" (click)="toggleAllUniverses()">
+            {{ showAllUniverses() ? 'Réduire la liste' : 'Voir tous les univers' }}
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        }
+      </section>
+    </aside>
+
+    <section class="main-column">
+      <section class="filter-bar" aria-label="Filtres personnages">
+        <div class="select-control">
+          <button
+            class="select-trigger"
+            type="button"
+            [class.open]="openFilterMenu() === 'universe'"
+            (click)="toggleFilterMenu('universe', $event)"
+          >
+            <span class="control-icon globe-icon" aria-hidden="true"></span>
+            <span class="select-label">Univers</span>
+            <strong>{{ selectedUniverseLabel() }}</strong>
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          @if (openFilterMenu() === 'universe') {
+            <div class="select-menu" (click)="$event.stopPropagation()">
+              @for (option of universeOptions(); track option.value) {
+                <button
+                  type="button"
+                  [class.active]="selectedUniverse() === option.value"
+                  (click)="selectUniverse(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="select-control">
+          <button
+            class="select-trigger"
+            type="button"
+            [class.open]="openFilterMenu() === 'role'"
+            (click)="toggleFilterMenu('role', $event)"
+          >
+            <span class="control-icon mask-icon" aria-hidden="true"></span>
+            <span class="select-label">Rôle</span>
+            <strong>{{ selectedRoleLabel() }}</strong>
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          @if (openFilterMenu() === 'role') {
+            <div class="select-menu" (click)="$event.stopPropagation()">
+              @for (option of roleOptions(); track option.value) {
+                <button
+                  type="button"
+                  [class.active]="selectedRole() === option.value"
+                  (click)="selectRole(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="select-control">
+          <button
+            class="select-trigger"
+            type="button"
+            [class.open]="openFilterMenu() === 'popularity'"
+            (click)="toggleFilterMenu('popularity', $event)"
+          >
+            <span class="control-icon bars-icon" aria-hidden="true"></span>
+            <span class="select-label">Popularité</span>
+            <strong>{{ selectedPopularityLabel() }}</strong>
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          @if (openFilterMenu() === 'popularity') {
+            <div class="select-menu" (click)="$event.stopPropagation()">
+              @for (option of popularityOptions; track option.value) {
+                <button
+                  type="button"
+                  [class.active]="selectedPopularity() === option.value"
+                  (click)="selectPopularity(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="select-control">
+          <button
+            class="select-trigger"
+            type="button"
+            [class.open]="openFilterMenu() === 'sort'"
+            (click)="toggleFilterMenu('sort', $event)"
+          >
+            <span class="control-icon sort-icon" aria-hidden="true"></span>
+            <span class="select-label">Tri</span>
+            <strong>{{ selectedSortLabel() }}</strong>
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          @if (openFilterMenu() === 'sort') {
+            <div class="select-menu" (click)="$event.stopPropagation()">
+              @for (option of sortOptions; track option.value) {
+                <button
+                  type="button"
+                  [class.active]="selectedSort() === option.value"
+                  (click)="selectSort(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          class="advanced-button"
+          type="button"
+          [class.active]="advancedFiltersOpen()"
+          (click)="toggleAdvancedFilters()"
+        >
+          <span class="control-icon sliders-icon" aria-hidden="true"></span>
+          <strong>Filtres avancés</strong>
+        </button>
+      </section>
+
+      @if (advancedFiltersOpen()) {
+        <section class="advanced-panel" aria-label="Filtres avancés">
+          <label class="search-control">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input
+              type="search"
+              autocomplete="off"
+              placeholder="Rechercher un personnage..."
+              [value]="query()"
+              (input)="setQuery($event)"
+            />
+            @if (query().trim()) {
+              <button type="button" aria-label="Effacer la recherche" (click)="clearQuery()">&times;</button>
+            }
+          </label>
+
+          <div class="quick-filters" aria-label="Seuil de popularité">
+            @for (option of popularityOptions.slice(1); track option.value) {
+              <button
+                type="button"
+                [class.active]="selectedPopularity() === option.value"
+                (click)="selectPopularity(option.value)"
+              >
+                {{ option.label }} favoris
+              </button>
+            }
+          </div>
+
+          <div class="active-filters">
+            @for (chip of activeFilterChips(); track chip.key) {
+              <button
+                class="filter-chip"
+                type="button"
+                [class.locked]="!chip.removable"
+                [attr.aria-label]="chip.removable ? 'Retirer ' + chip.label : chip.label"
+                (click)="removeFilterChip(chip)"
+              >
+                {{ chip.label }}
+                @if (chip.removable) {
+                  <span aria-hidden="true">&times;</span>
+                }
+              </button>
+            }
+            <button class="reset-button" type="button" (click)="resetFilters()">Tout réinitialiser</button>
+          </div>
+        </section>
+      }
+
+      @if (featuredCharacter(); as character) {
+        <article
+          class="featured-card"
+          [style.--character-accent-rgb]="characterAccentRgb(character)"
+          (mouseenter)="prepareCharacterAccentColor(character)"
+          (focusin)="prepareCharacterAccentColor(character)"
+        >
+          <p class="featured-label">
+            <span aria-hidden="true">&starf;</span>
+            Personnage mis en avant
+          </p>
+
+          <a
+            class="featured-media"
+            [routerLink]="['/characters', character.slug]"
+            (click)="rememberCharacter(character)"
+          >
+            <img
+              [src]="imageFor(character)"
+              [alt]="character.name"
+              loading="eager"
+              (load)="prepareCharacterAccentColor(character)"
+            />
+          </a>
+
+          <div class="featured-copy">
+            <h2>{{ character.name }}</h2>
+            <strong>{{ sourceLabel(character) }}</strong>
+            <p>{{ descriptionPreview(character, 178) }}</p>
+
+            <div class="tag-row">
+              <span
+                class="tag role-tag"
+                [class.main]="roleClass(character) === 'main'"
+                [class.supporting]="roleClass(character) === 'supporting'"
+                [class.antagonist]="roleClass(character) === 'antagonist'"
+                [class.mascot]="roleClass(character) === 'mascot'"
+              >
+                {{ roleLabel(character) }}
+              </span>
+              @if (character.sourceAnimeTitle) {
+                <span class="tag universe-tag">{{ character.sourceAnimeTitle }}</span>
+              }
+              @if (character.nicknames.length > 0) {
+                <span class="tag kanji-tag">{{ character.nicknames[0] }}</span>
+              }
+            </div>
+          </div>
+
+          <aside class="featured-actions">
+            <span class="metric">
+              <span class="metric-icon heart-outline-icon" aria-hidden="true"></span>
+              <strong>{{ favoriteShortLabel(character.favorites) }}</strong>
+              <small>favoris</small>
+            </span>
+            <span class="metric">
+              <span class="metric-icon flame-outline-icon" aria-hidden="true"></span>
+              <strong>{{ featuredRankLabel(character) }}</strong>
+              <small>popularité</small>
+            </span>
+            <a
+              class="featured-link"
+              [routerLink]="['/characters', character.slug]"
+              (click)="rememberCharacter(character)"
+            >
+              Voir la fiche
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </aside>
+        </article>
+      } @else if (!loading() && !popularLoading()) {
+        <div class="empty-results">
+          <h2>Aucun personnage disponible</h2>
+          <p>Modifie les filtres ou relance une recherche.</p>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="empty-results">
+          <h2>Erreur</h2>
+          <p>{{ errorMessage() }}</p>
+        </div>
+      }
+
+      <section id="characters-grid" class="character-grid" aria-label="Personnages">
+        @for (character of gridCharacters(); track trackCharacter($index, character)) {
+          <article
+            class="character-card"
+            [style.--character-accent-rgb]="characterAccentRgb(character)"
+            (mouseenter)="prepareCharacterAccentColor(character)"
+            (focusin)="prepareCharacterAccentColor(character)"
+          >
+            <a
+              class="card-link"
+              [routerLink]="['/characters', character.slug]"
+              (click)="rememberCharacter(character)"
+            >
+              <img
+                [src]="imageFor(character)"
+                [alt]="character.name"
+                loading="lazy"
+                (load)="prepareCharacterAccentColor(character)"
+              />
+              <span
+                class="role-badge"
+                [class.main]="roleClass(character) === 'main'"
+                [class.supporting]="roleClass(character) === 'supporting'"
+                [class.antagonist]="roleClass(character) === 'antagonist'"
+                [class.mascot]="roleClass(character) === 'mascot'"
+              >
+                {{ roleLabel(character) }}
+              </span>
+              <span class="card-gradient" aria-hidden="true"></span>
+              <span class="card-copy">
+                <strong>{{ character.name }}</strong>
+                <small>{{ sourceLabel(character) }}</small>
+                <span class="favorite-line">
+                  <span aria-hidden="true">&hearts;</span>
+                  {{ favoriteShortLabel(character.favorites) }}
+                </span>
+              </span>
+            </a>
+
+            <button
+              class="card-more"
+              type="button"
+              [attr.aria-label]="'Options pour ' + character.name"
+              (click)="toggleCardMenu($event, character)"
+            >
+              &hellip;
+            </button>
+
+            @if (isCardMenuOpen(character)) {
+              <div class="quick-menu" (click)="$event.stopPropagation()">
+                <a [routerLink]="['/characters', character.slug]" (click)="rememberCharacter(character)">Voir la fiche</a>
+                <button type="button" (click)="markAsRecent($event, character)">Marquer consulté</button>
+              </div>
+            }
+          </article>
+        } @empty {
+          @if (!loading()) {
+            <div class="empty-results">
+              <h2>Aucun personnage trouvé</h2>
+              <p>Modifie la recherche ou les filtres actifs.</p>
+            </div>
+          }
+        }
+      </section>
+
+      <div class="catalog-actions">
+        @if (loading()) {
+          <span>Chargement...</span>
+        } @else if (hasNextPage()) {
+          <button type="button" (click)="loadMore()">
+            Voir plus de personnages
+            <span aria-hidden="true">&darr;</span>
+          </button>
+        } @else if (filteredCharacters().length > 0) {
+          <span>{{ formatNumber(resultCount()) }} résultats affichés</span>
+        }
+      </div>
+    </section>
+
+    <aside class="right-rail" aria-label="Classements et activité">
+      <section class="side-panel ranking-panel">
+        <header class="panel-header">
+          <span>
+            <span class="title-icon crown-icon" aria-hidden="true"></span>
+            <h2>Top personnages</h2>
+          </span>
+          <button type="button" (click)="showTopCharacters()">Voir tout</button>
+        </header>
+
+        <ol class="ranking-list">
+          @for (character of topCharacters(); track trackCharacter($index, character); let index = $index) {
+            <li>
+              <a [routerLink]="['/characters', character.slug]" (click)="rememberCharacter(character)">
+                <span class="rank-number">{{ rankLabel(index) }}</span>
+                <img [src]="imageFor(character)" [alt]="character.name" loading="lazy" />
+                <span class="ranking-copy">
+                  <strong>{{ character.name }}</strong>
+                  <small>{{ sourceLabel(character) }}</small>
+                </span>
+                <span class="ranking-score">
+                  <span aria-hidden="true">&hearts;</span>
+                  {{ favoriteShortLabel(character.favorites) }}
+                </span>
+              </a>
+            </li>
+          } @empty {
+            <li class="panel-empty">Classement en cours de chargement.</li>
+          }
+        </ol>
+      </section>
+
+      <section class="side-panel activity-panel">
+        <header class="panel-header">
+          <span>
+            <span class="title-icon community-icon" aria-hidden="true"></span>
+            <h2>Activité de la communauté</h2>
+          </span>
+        </header>
+
+        <div class="activity-list">
+          @for (activity of visibleCommunityActivity(); track trackActivity($index, activity)) {
+            <a
+              class="activity-item"
+              [routerLink]="['/characters', activity.slug]"
+              (click)="rememberCharacter(activity.character)"
+            >
+              <img [src]="activity.imageUrl" [alt]="activity.characterName" loading="lazy" />
+              <span>
+                <small>
+                  <strong>{{ activity.actor }}</strong>
+                  {{ activity.actionBefore }}
+                  <em>{{ activity.characterName }}</em>
+                  {{ activity.actionAfter }}
+                </small>
+              </span>
+              <time>{{ activity.timeLabel }}</time>
+            </a>
+          } @empty {
+            <p class="panel-empty">Aucune activité récente.</p>
+          }
+        </div>
+
+        @if (communityActivity().length > 4) {
+          <button class="panel-link" type="button" (click)="toggleCommunityActivity()">
+            {{ communityExpanded() ? 'Réduire l’activité' : 'Voir toute l’activité' }}
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        }
+      </section>
+    </aside>
+  </section>
+
+  <section class="recent-bar content-shell" aria-label="Personnages récemment consultés">
+    <header>
+      <span class="recent-icon" aria-hidden="true"></span>
+      <h2>Personnages récemment consultés</h2>
+    </header>
+
+    <div class="recent-list">
+      @for (character of recentCharacters(); track trackCharacter($index, character)) {
+        <a [routerLink]="['/characters', character.slug]">
+          <img [src]="imageFor(character)" [alt]="character.name" loading="lazy" />
+          <span>
+            <strong>{{ character.name }}</strong>
+            <small>{{ sourceLabel(character) }}</small>
+          </span>
+        </a>
+      } @empty {
+        <p>Les fiches ouvertes depuis cette page apparaîtront ici.</p>
+      }
+    </div>
+
+    <button type="button" [disabled]="recentCharacters().length === 0" (click)="clearRecentCharacters()">
+      Tout effacer
+      <span class="trash-icon" aria-hidden="true"></span>
+    </button>
+  </section>
+</main>

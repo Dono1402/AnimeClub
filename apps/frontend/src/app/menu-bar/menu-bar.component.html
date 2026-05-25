@@ -1,0 +1,401 @@
+<nav class="landing-nav" aria-label="Navigation AnimeClub">
+  <a class="landing-brand" routerLink="/" aria-label="AnimeClub accueil">
+    <img src="assets/brand/animeclub-logo-nav.png" alt="" aria-hidden="true" />
+    <span>
+      <strong>Anime<span>Club</span></strong>
+      <small>アニメクラブ</small>
+    </span>
+  </a>
+
+  <div class="landing-nav__links">
+    <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+      {{ 'nav.home' | t }}
+    </a>
+
+    <a routerLink="/animes" routerLinkActive="active-link">{{ 'nav.animes' | t }}</a>
+    <a routerLink="/characters" routerLinkActive="active-link">{{ 'nav.characters' | t }}</a>
+    <a routerLink="/manga" routerLinkActive="active-link">{{ 'nav.manga' | t }}</a>
+  </div>
+
+  <div class="landing-search global-search" [class.search-open]="showGlobalSearchResults()">
+    <span class="search-icon" aria-hidden="true"></span>
+    <input
+      type="search"
+      [attr.aria-label]="'search.globalLabel' | t"
+      [placeholder]="globalSearchPlaceholder()"
+      [value]="globalSearchQuery()"
+      (focus)="setGlobalSearchOpen(true)"
+      (blur)="closeGlobalSearch()"
+      (input)="setGlobalSearchQuery($event)"
+      (keydown.enter)="openFirstGlobalSearchResult()"
+      (keydown.escape)="closeGlobalSearch()"
+    />
+    @if (showGlobalSearchResults()) {
+      <div class="global-results">
+        @for (result of globalSearchResults(); track result.id) {
+          <button
+            type="button"
+            class="global-result"
+            (mousedown)="$event.preventDefault()"
+            (click)="openGlobalSearchResult(result)"
+          >
+            @if (result.imageUrl) {
+              <img [src]="result.imageUrl" [alt]="result.title" loading="lazy" />
+            }
+            <span>
+              <small>{{ result.type }}</small>
+              <strong>{{ result.title }}</strong>
+              <em>{{ result.subtitle }}</em>
+            </span>
+          </button>
+        } @empty {
+          <div class="global-empty">{{ 'search.empty' | t }}</div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="landing-auth">
+    @if (account$ | async; as account) {
+      <button
+        mat-button
+        class="profile-menu-button"
+        [matMenuTriggerFor]="profileMenu"
+        #profileMenuTrigger="matMenuTrigger"
+        [class.menu-open]="profileMenuTrigger.menuOpen"
+        type="button"
+        [attr.aria-label]="('nav.profile' | t) + ' - ' + displayName(account)"
+        [title]="displayName(account)"
+      >
+        <span
+          class="profile-chip"
+          [style.background-image]="profilePicture(account) ? 'url(' + profilePicture(account) + ')' : null"
+        >
+          @if (!profilePicture(account)) {
+            <span>{{ displayName(account).slice(0, 1).toUpperCase() }}</span>
+          }
+        </span>
+        <strong>{{ displayName(account) }}</strong>
+        <svg class="profile-chevron" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="m7 10 5 5 5-5" />
+        </svg>
+      </button>
+      <mat-menu #profileMenu="matMenu" class="profile-menu-panel" xPosition="before" yPosition="below">
+        <div
+          class="profile-dropdown"
+          [style.--profile-dropdown-bg]="backgroundPicture(account) ? 'url(' + backgroundPicture(account) + ')' : null"
+        >
+          <header class="profile-dropdown-hero">
+            <span class="profile-dropdown-avatar" aria-hidden="true">
+              @if (profilePicture(account); as pictureUrl) {
+                <img [src]="pictureUrl" [alt]="displayName(account)" />
+              } @else {
+                <span>{{ displayName(account).slice(0, 1).toUpperCase() }}</span>
+              }
+            </span>
+            <span class="profile-dropdown-identity">
+              <strong>{{ displayName(account) }}</strong>
+              <small>@{{ account.pseudo }}</small>
+              <em><i></i> En ligne</em>
+            </span>
+          </header>
+
+          <section class="profile-dropdown-section" aria-label="Compte">
+            <h3>Compte</h3>
+            <a class="profile-menu-entry" routerLink="/profile" (click)="profileMenuTrigger.closeMenu()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M18 20a6 6 0 0 0-12 0" />
+                <circle cx="12" cy="8" r="4" />
+              </svg>
+              <span>Mon profil</span>
+              <b></b>
+              <i aria-hidden="true">›</i>
+            </a>
+            <a
+              class="profile-menu-entry"
+              [class.has-menu-notification]="visibleUnreadMessageCount() > 0"
+              routerLink="/messages"
+              (click)="dismissMessageMenuBadge(); profileMenuTrigger.closeMenu()"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M4 5h16v12H8l-4 4V5Z" />
+                <path d="M8 9h.01M12 9h.01M16 9h.01" />
+              </svg>
+              <span>Messages</span>
+              @if (visibleUnreadMessageCount() > 0) {
+                <b>{{ messageBadgeLabel() }}</b>
+              } @else {
+                <b></b>
+              }
+              <i aria-hidden="true">›</i>
+            </a>
+            <a
+              class="profile-menu-entry"
+              [class.has-menu-notification]="unreadBadgeNotificationCount() > 0"
+              routerLink="/achievements"
+              (click)="markProfileMenuNotificationsRead(account.id, 'ACHIEVEMENT_UNLOCKED'); profileMenuTrigger.closeMenu()"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M8 21h8" />
+                <path d="M12 17v4" />
+                <path d="M7 4h10v4a5 5 0 0 1-10 0V4Z" />
+                <path d="M5 5H3v2a3 3 0 0 0 4 2.8M19 5h2v2a3 3 0 0 1-4 2.8" />
+              </svg>
+              <span>Mes badges</span>
+              @if (unreadBadgeNotificationCount() > 0) {
+                <b>{{ profileMenuBadgeLabel(unreadBadgeNotificationCount()) }}</b>
+              } @else {
+                <b></b>
+              }
+              <i aria-hidden="true">›</i>
+            </a>
+            <a
+              class="profile-menu-entry"
+              [class.has-menu-notification]="unreadFollowNotificationCount() > 0"
+              routerLink="/following"
+              (click)="markProfileMenuNotificationsRead(account.id, 'FOLLOW'); profileMenuTrigger.closeMenu()"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M16 20a4 4 0 0 0-8 0" />
+                <circle cx="12" cy="8" r="3" />
+                <path d="M22 20a4 4 0 0 0-3-3.87M16 5.13a3 3 0 0 1 0 5.74" />
+              </svg>
+              <span>Mes suivis</span>
+              @if (unreadFollowNotificationCount() > 0) {
+                <b>{{ profileMenuBadgeLabel(unreadFollowNotificationCount()) }}</b>
+              } @else {
+                <b></b>
+              }
+              <i aria-hidden="true">›</i>
+            </a>
+            <a
+              class="profile-menu-entry"
+              [class.has-menu-notification]="unreadAccountNotificationCount() > 0"
+              routerLink="/account"
+              (click)="markProfileMenuNotificationsRead(account.id, 'USERNAME_CHANGE_REQUIRED'); profileMenuTrigger.closeMenu()"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+              <span>Mon compte</span>
+              @if (unreadAccountNotificationCount() > 0) {
+                <b>{{ profileMenuBadgeLabel(unreadAccountNotificationCount()) }}</b>
+              } @else {
+                <b></b>
+              }
+              <i aria-hidden="true">›</i>
+            </a>
+          </section>
+
+          <section class="profile-dropdown-section libraries" aria-label="Bibliothèques">
+            <h3>Bibliothèques</h3>
+            <a class="profile-library-entry anime-library-entry" routerLink="/anime-library" (click)="profileMenuTrigger.closeMenu()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m10 9 5 3-5 3V9Z" />
+              </svg>
+              <span>
+                <strong>Animethèque</strong>
+                <small>Vos animes, listes et favoris</small>
+              </span>
+              <i aria-hidden="true">›</i>
+            </a>
+            <a class="profile-library-entry manga-library-entry" routerLink="/manga-library" (click)="profileMenuTrigger.closeMenu()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M4 19.5V5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 0-2 2Z" />
+                <path d="M20 19.5V5a2 2 0 0 0-2-2h-5v18h5a2 2 0 0 1 2 2Z" />
+              </svg>
+              <span>
+                <strong>Mangathèque</strong>
+                <small>Vos mangas, collections et favoris</small>
+              </span>
+              <i aria-hidden="true">›</i>
+            </a>
+          </section>
+
+          <section class="profile-dropdown-section actions" aria-label="Actions">
+            <h3>Actions</h3>
+            <button type="button" class="profile-menu-entry logout-entry" (click)="profileMenuTrigger.closeMenu(); logout()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M12 2v10" />
+                <path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
+              </svg>
+              <span>Déconnexion</span>
+              <b></b>
+              <i aria-hidden="true">›</i>
+            </button>
+          </section>
+        </div>
+      </mat-menu>
+      <button
+        mat-button
+        class="notification-button"
+        [matMenuTriggerFor]="notificationMenu"
+        type="button"
+        aria-label="Notifications"
+        title="Notifications"
+        (menuOpened)="markNotificationsRead(account.id)"
+      >
+        <svg class="bell-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+          <path d="M18 8.7a6 6 0 0 0-12 0c0 7-3 7-3 8.8 0 1 2 1.5 9 1.5s9-.5 9-1.5c0-1.8-3-1.8-3-8.8Z" />
+        </svg>
+        @if (unreadNotificationCount() > 0) {
+          <span class="notification-badge">{{ notificationBadgeLabel() }}</span>
+        }
+      </button>
+      <a class="top-icon-link" routerLink="/messages" aria-label="Messages" title="Messages">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M4 6.5h16v11H4z" />
+          <path d="m4 7 8 6 8-6" />
+        </svg>
+      </a>
+      <mat-menu #notificationMenu="matMenu" class="notification-menu-panel" xPosition="before" yPosition="below">
+        <div class="notification-menu">
+          <header>
+            <span>
+              <strong>Notifications</strong>
+            @if (notifications().length > 0) {
+              <small>{{ notifications().length }} récentes</small>
+            }
+            </span>
+            @if (notifications().length > 0) {
+              <button
+                type="button"
+                class="notification-clear-button"
+                aria-label="Supprimer les notifications"
+                title="Supprimer les notifications"
+                (click)="deleteDisplayedNotifications(account.id, $event)"
+              >
+                <svg class="trash-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <path class="trash-lid" d="M8 6h8m-6 0V4h4v2" />
+                  <path class="trash-can" d="M6.5 8h11M9 8l.7 11h4.6L15 8M10.5 11v5M13.5 11v5" />
+                </svg>
+              </button>
+            }
+          </header>
+
+          @for (notification of displayedNotifications(); track notification.id) {
+            <button
+              mat-menu-item
+              type="button"
+              class="notification-item"
+              [class.unread]="!notification.read"
+              (click)="openNotification(notification)"
+            >
+              <span
+                class="notification-avatar"
+                [class.achievement-avatar]="notification.type === 'ACHIEVEMENT_UNLOCKED'"
+                [style.background-image]="
+                  notificationActorPicture(notification) ? 'url(' + notificationActorPicture(notification) + ')' : null
+                "
+              >
+                @if (notificationAchievementIconUrl(notification); as achievementIconUrl) {
+                  <img [src]="achievementIconUrl" [alt]="notificationTitle(notification)" />
+                } @else if (notification.type === 'ACHIEVEMENT_UNLOCKED') {
+                  {{ notification.achievementIcon || 'OK' }}
+                } @else if (!notificationActorPicture(notification)) {
+                  {{ notification.actor.displayName.slice(0, 1).toUpperCase() }}
+                }
+              </span>
+              <span class="notification-copy">
+                <strong>{{ notificationTitle(notification) }}</strong>
+                <em>{{ notificationSubtitle(notification) }}</em>
+                <small>{{ notificationTimeLabel(notification) }}</small>
+              </span>
+            </button>
+          } @empty {
+            <div class="notification-empty">Aucune notification pour le moment.</div>
+          }
+
+          @if (notifications().length > 0) {
+            <button type="button" class="notification-more-button" (click)="openAllNotifications($event)">
+              Tout afficher
+            </button>
+          }
+        </div>
+      </mat-menu>
+    } @else {
+      <a class="landing-auth__login" routerLink="/login" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'nav.login' | t }}
+      </a>
+      <a
+        class="landing-auth__signup"
+        routerLink="/register"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span aria-hidden="true">→</span>
+        {{ 'nav.signup' | t }}
+      </a>
+    }
+
+  </div>
+</nav>
+
+@if (notificationToasts().length > 0 || achievementToasts().length > 0) {
+  <div class="notification-toasts" aria-live="polite" aria-atomic="false">
+    @for (notification of notificationToasts(); track notification.id) {
+      <article class="notification-toast">
+        <button type="button" class="notification-toast-content" (click)="openNotificationToast(notification)">
+          <span
+            class="notification-toast-avatar"
+            [style.background-image]="
+              notificationActorPicture(notification) ? 'url(' + notificationActorPicture(notification) + ')' : null
+            "
+          >
+            @if (!notificationActorPicture(notification)) {
+              {{ notification.actor.displayName.slice(0, 1).toUpperCase() }}
+            }
+          </span>
+
+          <span class="notification-toast-copy">
+            <small>Nouvelle notification</small>
+            <strong>{{ notificationTitle(notification) }}</strong>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="notification-toast-close"
+          aria-label="Masquer la notification"
+          (click)="dismissNotificationToast(notification.id)"
+        >
+          &times;
+        </button>
+      </article>
+    }
+
+    @for (toast of achievementToasts(); track toast.id) {
+      <article class="notification-toast achievement-toast">
+        <button type="button" class="notification-toast-content achievement-toast-content" (click)="openAchievementToast(toast)">
+          <span class="achievement-toast-icon" [class.has-rank-image]="toast.achievement.iconUrl">
+            @if (toast.achievement.iconUrl) {
+              <img [src]="toast.achievement.iconUrl" [alt]="toast.achievement.title" />
+            } @else {
+              <span>{{ toast.achievement.icon }}</span>
+            }
+          </span>
+
+          <span class="notification-toast-copy achievement-toast-copy">
+            <small>Badge débloqué</small>
+            <strong>{{ toast.achievement.title }}</strong>
+            <em>{{ toast.achievement.description }}</em>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="notification-toast-close"
+          aria-label="Masquer le badge"
+          (click)="dismissAchievementToast(toast.id)"
+        >
+          &times;
+        </button>
+      </article>
+    }
+  </div>
+}
+
+<app-messages-dock />

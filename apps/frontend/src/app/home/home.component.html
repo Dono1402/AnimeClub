@@ -1,0 +1,252 @@
+<app-menu-bar></app-menu-bar>
+
+<main class="adn-home">
+  <section class="hero-carousel">
+    @for (slide of heroSlides; track slide.title; let index = $index) {
+      <div
+        class="hero-background"
+        aria-hidden="true"
+        [class.active]="activeHeroIndex() === index"
+        [style.background-image]="activeHeroIndex() === index ? heroBackground(slide) : 'none'"
+      ></div>
+    }
+
+    <div class="hero-content">
+      <p class="hero-kicker">Nouvelles sorties</p>
+      <h1>{{ activeHero().title }}</h1>
+      <p class="hero-subtitle">{{ activeHero().subtitle }}</p>
+
+      <div class="hero-tags" aria-label="Disponibilités">
+        @for (tag of activeHero().tags; track tag) {
+          <span>{{ tag }}</span>
+        }
+      </div>
+
+      <p class="hero-synopsis">{{ activeHero().synopsis }}</p>
+
+      <div class="hero-actions">
+        <a class="watch-button" [routerLink]="activeHero().link">Voir la fiche</a>
+      </div>
+
+      <small>{{ activeHero().copyright }}</small>
+    </div>
+
+    <button class="carousel-arrow previous" type="button" aria-label="Anime précédent" (click)="previousHero()">‹</button>
+    <button class="carousel-arrow next" type="button" aria-label="Anime suivant" (click)="nextHero()">›</button>
+
+    <div class="carousel-dots" aria-label="Nouvelles sorties">
+      @for (slide of heroSlides; track slide.title; let index = $index) {
+        <button
+          type="button"
+          [class.active]="activeHeroIndex() === index"
+          [attr.aria-label]="'Afficher ' + slide.title"
+          [attr.aria-current]="activeHeroIndex() === index ? 'true' : null"
+          (click)="selectHero(index)"
+        ></button>
+      }
+    </div>
+  </section>
+
+  <section class="home-board" aria-label="Tableau de bord AnimeClub">
+    <div class="home-board-grid">
+      <div class="home-main-stack">
+        <section class="home-panel continue-panel">
+          <header class="panel-head">
+            <div>
+              <span class="panel-icon resume-icon" aria-hidden="true"></span>
+              <h2>Mettre à jour votre Animethèque</h2>
+            </div>
+            <a class="panel-link" routerLink="/anime-library">Tout voir <span aria-hidden="true">›</span></a>
+          </header>
+
+          @if (personalLoading()) {
+            <p class="home-empty">Chargement de votre progression...</p>
+          } @else if (continueCards().length) {
+            <div class="continue-grid">
+              @for (card of continueCards(); track card.id) {
+                <a class="continue-card" [routerLink]="card.route">
+                  <img [src]="card.image" [alt]="card.title" loading="lazy" />
+                  <span class="progress-mark" aria-hidden="true"></span>
+                  <span class="card-menu-dot" aria-hidden="true"></span>
+                  <span class="continue-info">
+                    <strong>{{ card.title }}</strong>
+                    <small>{{ card.subtitle }}</small>
+                    <span class="progress-line">
+                      <i [style.width.%]="card.progress"></i>
+                    </span>
+                    <em>{{ card.progress }}%</em>
+                  </span>
+                </a>
+              }
+            </div>
+          } @else {
+            <p class="home-empty">
+              @if (account()) {
+                Aucun anime en cours pour le moment.
+              } @else {
+                Connectez-vous pour mettre à jour votre Animethèque.
+              }
+            </p>
+          }
+        </section>
+
+        <section class="home-panel ranking-panel">
+          <header class="panel-head">
+            <div>
+              <span class="panel-icon ranking-icon" aria-hidden="true"></span>
+              <h2>Top 10 de la semaine</h2>
+            </div>
+            <a class="panel-link" routerLink="/animes">Tout le classement <span aria-hidden="true">›</span></a>
+          </header>
+
+          @if (catalogLoading()) {
+            <p class="home-empty">Chargement du classement...</p>
+          } @else {
+            <div class="ranking-row">
+              @for (card of topWeekCards(); track card.id; let rank = $index) {
+                <a class="ranking-card" [routerLink]="card.route">
+                  <span class="rank-number">{{ rank + 1 }}</span>
+                  <img [src]="card.image" [alt]="card.title" loading="lazy" />
+                  <span class="ranking-info">
+                    <strong>{{ card.title }}</strong>
+                    @if (card.score !== null) {
+                      <small>{{ scoreLabel(card.score) }} ★</small>
+                    }
+                  </span>
+                </a>
+              } @empty {
+                <p class="home-empty">Classement indisponible.</p>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="home-panel spotlight-panel">
+          <header class="panel-head">
+            <div>
+              <span class="panel-icon sparkle-icon" aria-hidden="true"></span>
+              <h2>{{ spotlightHeading() }}</h2>
+            </div>
+            <a class="panel-link" routerLink="/animes">Tout voir</a>
+          </header>
+
+          <div class="spotlight-grid">
+            @for (card of spotlightCards(); track card.id) {
+              <a class="spotlight-card" [routerLink]="card.route">
+                <img [src]="card.image" [alt]="card.title" loading="lazy" />
+                <span class="spotlight-copy">
+                  <span
+                    class="spotlight-badge"
+                    [class.sequel]="card.kind === 'sequel'"
+                    [class.hidden]="card.kind === 'hidden'"
+                    [class.catchup]="card.kind === 'catchup'"
+                    [class.profile]="card.kind === 'profile'"
+                  >
+                    {{ card.badge }}
+                  </span>
+                  <strong>{{ card.title }}</strong>
+                  <small>{{ card.reason }}</small>
+                  @if (card.score !== null) {
+                    <em><b aria-hidden="true">★</b> {{ scoreLabel(card.score) }}</em>
+                  }
+                  <small class="spotlight-meta">{{ card.subtitle }}</small>
+                </span>
+              </a>
+            } @empty {
+              <p class="home-empty">Suggestions indisponibles.</p>
+            }
+          </div>
+        </section>
+      </div>
+
+      <aside class="home-side-stack">
+        <section class="home-panel activity-panel">
+          <header class="panel-head">
+            <div>
+              <span class="panel-icon pulse-icon" aria-hidden="true"></span>
+              <h2>Fil d’activité</h2>
+            </div>
+            <a class="panel-link" routerLink="/following">Tout voir <span aria-hidden="true">›</span></a>
+          </header>
+
+          <div class="activity-list">
+            @for (item of followingActivityCards(); track item.id) {
+              <article class="activity-item" [class.new-entry]="item.isNew">
+                <a class="activity-avatar" [routerLink]="['/profile', item.profile.pseudo]">
+                  @if (item.avatarUrl) {
+                    <img [src]="item.avatarUrl" [alt]="item.profileName" loading="lazy" />
+                  } @else {
+                    <span>{{ item.initials }}</span>
+                  }
+                </a>
+                <div class="activity-body">
+                  <p>
+                    <a [routerLink]="['/profile', item.profile.pseudo]">{{ item.profileName }}</a>
+                    {{ item.action }}
+                    <small>{{ item.timeLabel }}</small>
+                  </p>
+                  <a class="activity-entry" [routerLink]="item.route" [queryParams]="item.queryParams">
+                    <img [src]="item.image" [alt]="item.title" loading="lazy" />
+                    <span>
+                      <strong>{{ item.title }}</strong>
+                      <em>{{ item.subtitle }}</em>
+                    </span>
+                  </a>
+                  <div class="activity-actions">
+                    <button
+                      type="button"
+                      class="activity-like"
+                      [class.liked]="item.liked"
+                      [class.just-liked]="item.justLiked"
+                      [disabled]="item.activityEntryId === null"
+                      [attr.aria-pressed]="item.liked"
+                      [attr.aria-label]="item.liked ? 'Retirer le like' : 'Liker cette activité'"
+                      (click)="toggleActivityLike($event, item)"
+                    >
+                      <span class="heart-icon" aria-hidden="true"></span>
+                    </button>
+                    <strong class="activity-like-count">{{ item.likes }}</strong>
+                  </div>
+                </div>
+              </article>
+            } @empty {
+              <p class="home-empty">
+                @if (account()) {
+                  Aucune activité récente chez les profils que vous suivez.
+                } @else {
+                  Connectez-vous pour afficher l’activité des profils suivis.
+                }
+              </p>
+            }
+          </div>
+
+          <a class="activity-more" routerLink="/following">Voir plus d’activités <span aria-hidden="true">⌄</span></a>
+        </section>
+
+        <section class="home-panel collections-panel">
+          <header class="panel-head">
+            <div>
+              <span class="panel-icon collection-icon" aria-hidden="true"></span>
+              <h2>Collections éditoriales</h2>
+            </div>
+            <a class="panel-link" routerLink="/animes">Tout voir <span aria-hidden="true">›</span></a>
+          </header>
+
+          <div class="collection-grid">
+            @for (collection of collectionCards; track collection.title) {
+              <a
+                class="collection-card"
+                [routerLink]="collection.route"
+                [queryParams]="collection.queryParams"
+                [style.background-image]="'linear-gradient(90deg, rgba(7, 17, 20, 0.9), rgba(7, 17, 20, 0.32)), url(' + collection.image + ')'"
+              >
+                <strong>{{ collection.title }}</strong>
+                <small>{{ collection.subtitle }}</small>
+              </a>
+            }
+          </div>
+        </section>
+      </aside>
+    </div>
+  </section>
+</main>

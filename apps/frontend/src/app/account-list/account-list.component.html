@@ -1,0 +1,5 @@
+<ul>
+  @for (account of accounts$ | async; track account.id) {
+    <li>{{ account.pseudo }} - {{ account.mail }}</li>
+  }
+</ul>

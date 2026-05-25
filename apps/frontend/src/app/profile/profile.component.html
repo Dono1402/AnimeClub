@@ -1,0 +1,219 @@
+<app-menu-bar />
+
+<main class="profile-page" [style.--profile-accent]="accentColor()">
+  @if (account(); as currentAccount) {
+    <input
+      #profilePictureInput
+      class="visually-hidden-file"
+      type="file"
+      tabindex="-1"
+      aria-hidden="true"
+      accept="image/png,image/jpeg,image/webp,image/gif"
+      (change)="selectProfilePicture($event)"
+    />
+    <input
+      #backgroundInput
+      class="visually-hidden-file"
+      type="file"
+      tabindex="-1"
+      aria-hidden="true"
+      accept="image/png,image/jpeg,image/webp,image/gif"
+      (change)="selectBackground($event)"
+    />
+
+    <section class="profile-hero" [style.background-image]="bannerStyle()">
+      <button
+        class="background-upload-zone"
+        type="button"
+        [attr.aria-label]="('profile.change' | t) + ' ' + ('profile.background' | t)"
+        (click)="openMediaActions('background', backgroundInput, $event)"
+      ></button>
+
+      <div class="hero-content">
+        <div class="avatar-anchor">
+          <button
+            class="avatar"
+            type="button"
+            [attr.aria-label]="('profile.change' | t) + ' ' + ('profile.picture' | t)"
+            (click)="openMediaActions('profilePicture', profilePictureInput, $event)"
+          >
+            @if (profilePictureUrl(); as pictureUrl) {
+              <img [src]="pictureUrl" [alt]="displayName()" />
+            } @else {
+              <span>{{ initials() }}</span>
+            }
+            <small>{{ 'profile.change' | t }}</small>
+          </button>
+          <i class="presence-dot online profile-presence" aria-hidden="true"></i>
+        </div>
+
+        <div class="identity">
+          <p class="eyebrow">{{ 'profile.eyebrow' | t }}</p>
+          <h1>{{ displayName() }}</h1>
+          <p>{{ currentAccount.profileStatus || ('profile.noStatus' | t) }}</p>
+          <div class="profile-social-stats" aria-label="Statistiques sociales">
+            <a routerLink="/following">
+              <strong>{{ followingCount() }}</strong>
+              <span>Suivis</span>
+            </a>
+            <a routerLink="/following" [queryParams]="{ tab: 'followers' }">
+              <strong>{{ followersCount() }}</strong>
+              <span>Abonnés</span>
+            </a>
+          </div>
+          <a
+            class="profile-level-card"
+            routerLink="/badges"
+            [style.--level-hue]="animeLevelHue()"
+            [style.--level-next-hue]="animeLevelNextHue()"
+            aria-label="Voir mes badges"
+          >
+            <span class="anime-level-badge">
+              <img class="rank-icon" [src]="animeProgress().rankImageUrl" alt="" />
+              <span class="level-label">Niv.</span>
+              <strong>{{ animeProgress().level }}</strong>
+            </span>
+            <span class="level-copy">
+              <strong>{{ animeProgress().levelTitle }}</strong>
+              <em>{{ animeProgress().totalXp | number: '1.0-0' }} XP &middot; {{ animeProgress().levelTier }}</em>
+              <span class="level-track">
+                <i [style.width.%]="animeProgress().progressPercent"></i>
+              </span>
+              <small>{{ animeLevelProgressLabel() }}</small>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <span class="background-edit">{{ 'profile.change' | t }} {{ 'profile.background' | t }}</span>
+    </section>
+
+    @if (mediaActionTarget(); as mediaTarget) {
+      <section
+        class="media-panel"
+        [style.left.px]="mediaPanelPosition().left"
+        [style.top.px]="mediaPanelPosition().top"
+        [attr.aria-label]="mediaTarget === 'profilePicture' ? ('profile.avatarActions' | t) : ('profile.backgroundActions' | t)"
+      >
+        <div class="media-choice-actions">
+          <button
+            class="media-action primary-action"
+            type="button"
+            (click)="changeSelectedMedia(mediaTarget === 'profilePicture' ? profilePictureInput : backgroundInput)"
+          >
+            <span aria-hidden="true">+</span>
+            {{ mediaTarget === 'profilePicture' ? ('profile.changeAvatar' | t) : ('profile.changeBackground' | t) }}
+          </button>
+          <button class="media-action danger-action" type="button" (click)="deleteSelectedMedia()">
+            <span aria-hidden="true">x</span>
+            {{ mediaTarget === 'profilePicture' ? ('profile.deleteAvatar' | t) : ('profile.deleteBackground' | t) }}
+          </button>
+        </div>
+      </section>
+    }
+
+    <nav class="profile-library-tabs" aria-label="Mes listes">
+      <a routerLink="/anime-library">
+        <strong>Animethèque</strong>
+      </a>
+      <a routerLink="/manga-library">
+        <strong>Mangathèque</strong>
+      </a>
+    </nav>
+
+    @if (feedback()) {
+      <p class="feedback">{{ feedback() }}</p>
+    }
+
+    @if (cropState(); as crop) {
+      <div class="crop-backdrop" role="dialog" aria-modal="true" aria-labelledby="profile-crop-title">
+        <section class="crop-panel">
+          <div class="section-title">
+            <p class="eyebrow">
+              {{ crop.target === 'profilePicture' ? ('profile.picture' | t) : ('profile.background' | t) }}
+            </p>
+            <h2 id="profile-crop-title">
+              {{ crop.target === 'profilePicture' ? ('profile.cropPicture' | t) : ('profile.cropBackground' | t) }}
+            </h2>
+          </div>
+
+          <div class="crop-layout">
+            <div
+              class="crop-frame"
+              [style.aspect-ratio]="crop.sourceAspectRatio + ' / 1'"
+              (pointerdown)="startCropDrag($event)"
+              (pointermove)="moveCropDrag($event)"
+              (pointerup)="endCropDrag($event)"
+              (pointercancel)="endCropDrag($event)"
+              (wheel)="zoomCropWithWheel($event)"
+            >
+              <img [src]="crop.sourceUrl" alt="" />
+              <div
+                class="crop-selection"
+                [class.crop-selection-avatar]="crop.target === 'profilePicture'"
+                [style.width.%]="cropSelectionWidth(crop)"
+                [style.height.%]="cropSelectionHeight(crop)"
+                [style.left.%]="cropSelectionLeft(crop)"
+                [style.top.%]="cropSelectionTop(crop)"
+              ></div>
+            </div>
+
+            <div class="crop-controls">
+              <p>{{ 'profile.cropDirectHint' | t }}</p>
+
+              <div class="zoom-actions" [attr.aria-label]="'profile.cropZoom' | t">
+                <button mat-stroked-button type="button" [attr.aria-label]="'profile.cropZoomOut' | t" (click)="zoomCrop(-0.1)">
+                  -
+                </button>
+                <span>{{ crop.zoom | number: '1.0-2' }}x</span>
+                <button mat-stroked-button type="button" [attr.aria-label]="'profile.cropZoomIn' | t" (click)="zoomCrop(0.1)">
+                  +
+                </button>
+                <button mat-stroked-button type="button" (click)="resetCrop()">
+                  {{ 'profile.cropReset' | t }}
+                </button>
+              </div>
+
+              <div class="actions">
+                <button mat-stroked-button type="button" (click)="cancelCrop()">{{ 'common.cancel' | t }}</button>
+                <button mat-raised-button type="button" (click)="applyCrop()">{{ 'profile.cropApply' | t }}</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    }
+
+    <section class="profile-grid">
+      <section class="bio-preview">
+        <p class="eyebrow">{{ currentAccount.pseudo }}</p>
+        <h2>{{ currentAccount.favoriteAnime || ('profile.favoriteAnimeEmpty' | t) }}</h2>
+        <p>{{ currentAccount.bio || ('profile.bioEmpty' | t) }}</p>
+      </section>
+
+      <section class="favorites">
+        <div class="section-title">
+          <p class="eyebrow">{{ 'profile.favorites' | t }}</p>
+          <h2>{{ 'profile.favoriteList' | t }}</h2>
+        </div>
+
+        @for (entry of favoriteEntries(); track entry.id) {
+          <a class="favorite-entry" routerLink="/anime-library">
+            <img [src]="entry.coverUrl" [alt]="entry.title" loading="lazy" />
+            <span>{{ entry.title }}</span>
+          </a>
+        } @empty {
+          <p class="empty">{{ 'profile.noFavorites' | t }}</p>
+        }
+      </section>
+    </section>
+  } @else {
+    <section class="state">{{ 'auth.loginError' | t }}</section>
+  }
+
+  @if (toastMessage()) {
+    <div class="profile-toast" role="status" aria-live="polite">
+      {{ toastMessage() }}
+    </div>
+  }
+</main>

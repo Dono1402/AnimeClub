@@ -1,0 +1,72 @@
+<app-menu-bar />
+
+<main class="notifications-page">
+  <section class="notifications-hero">
+    <div>
+      <p class="eyebrow">Notifications</p>
+      <h1>Toutes les notifications</h1>
+      <p>{{ notifications().length }} notification{{ notifications().length > 1 ? 's' : '' }} non supprimee{{ notifications().length > 1 ? 's' : '' }}</p>
+    </div>
+
+    @if (notifications().length > 0) {
+      <button type="button" class="clear-all-button" (click)="deleteAllNotifications()">
+        Tout supprimer
+      </button>
+    }
+  </section>
+
+  @if (feedback()) {
+    <p class="state">{{ feedback() }}</p>
+  } @else if (loading()) {
+    <p class="state">Chargement des notifications...</p>
+  } @else {
+    <section class="notifications-list" aria-label="Toutes les notifications">
+      @for (notification of notifications(); track notification.id) {
+        <article
+          class="notification-row"
+          [class.unread]="!notification.read"
+          role="button"
+          tabindex="0"
+          (click)="openNotification(notification)"
+          (keydown.enter)="openNotification(notification)"
+          (keydown.space)="openNotification(notification)"
+        >
+          <span
+            class="notification-avatar"
+            [class.achievement-avatar]="notification.type === 'ACHIEVEMENT_UNLOCKED'"
+            [style.background-image]="
+              notificationActorPicture(notification) ? 'url(' + notificationActorPicture(notification) + ')' : null
+            "
+          >
+            @if (notificationAchievementIconUrl(notification); as achievementIconUrl) {
+              <img [src]="achievementIconUrl" [alt]="notificationTitle(notification)" />
+            } @else {
+              {{ avatarLetter(notification) }}
+            }
+          </span>
+
+          <span class="notification-copy">
+            <strong>{{ notificationTitle(notification) }}</strong>
+            <em>{{ notificationSubtitle(notification) }}</em>
+            <small>{{ notificationTimeLabel(notification) }}</small>
+          </span>
+
+          <button
+            type="button"
+            class="delete-notification-button"
+            aria-label="Supprimer cette notification"
+            title="Supprimer cette notification"
+            (click)="deleteNotification(notification, $event)"
+          >
+            &times;
+          </button>
+        </article>
+      } @empty {
+        <div class="empty">
+          <h2>Aucune notification</h2>
+          <p>Les notifications supprimees ne sont plus affichees ici.</p>
+        </div>
+      }
+    </section>
+  }
+</main>

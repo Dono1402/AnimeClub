@@ -1,0 +1,67 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #fff7fb;
+  background:
+    linear-gradient(135deg, rgba(8, 5, 12, 0.92), rgba(18, 8, 20, 0.88)),
+    url("../../assets/auth/signup-background.png") center / cover fixed;
+}
+
+.discord-callback {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.callback-card {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 460px);
+  padding: 34px;
+  border: 1px solid rgba(255, 221, 236, 0.2);
+  border-radius: 14px;
+  background: rgba(13, 10, 18, 0.8);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow,
+.callback-card h1,
+.callback-card p {
+  margin: 0;
+}
+
+.eyebrow {
+  color: #ff75aa;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.callback-card h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1;
+}
+
+.callback-card p {
+  color: rgba(255, 247, 251, 0.76);
+  line-height: 1.6;
+}
+
+.callback-card .error {
+  padding: 12px;
+  border: 1px solid rgba(255, 97, 128, 0.4);
+  border-radius: 10px;
+  background: rgba(104, 19, 38, 0.46);
+  color: #ffc1cf;
+  font-weight: 700;
+}
+
+.callback-card a {
+  color: #ff8eb8;
+  font-weight: 800;
+  text-decoration: none;
+}

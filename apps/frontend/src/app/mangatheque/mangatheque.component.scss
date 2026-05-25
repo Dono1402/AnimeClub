@@ -1,0 +1,139 @@
+@use '../animetheque/animetheque.component.scss';
+
+.mangatheque-page {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 14px clamp(8px, 0.8vw, 16px) 24px;
+}
+
+.hero-panel::before {
+  background-image: url('/assets/mangatheque/mangatheque-banner.png');
+}
+
+.hero-stat--manga {
+  --stat-rgb: 255, 86, 56;
+}
+
+.hero-stat--reading {
+  --stat-rgb: 45, 177, 255;
+}
+
+.hero-stat--volumes {
+  --stat-rgb: 180, 111, 255;
+}
+
+.hero-stat--manga .stat-icon::before {
+  content: '▦';
+}
+
+.hero-stat--reading .stat-icon::before {
+  content: '▣';
+}
+
+.hero-stat--volumes .stat-icon::before {
+  content: '▱';
+}
+
+.type-badge--manga {
+  border-color: rgba(255, 105, 72, 0.36);
+  color: #ffb39f;
+}
+
+.type-badge--light-novel,
+.type-badge--novel {
+  border-color: rgba(116, 207, 255, 0.36);
+  color: #9edfff;
+}
+
+.type-badge--manhwa,
+.type-badge--manhua {
+  border-color: rgba(81, 220, 152, 0.36);
+  color: #9ff2ca;
+}
+
+.type-badge--one-shot,
+.type-badge--doujinshi,
+.type-badge--other {
+  border-color: rgba(191, 132, 255, 0.36);
+  color: #d9b9ff;
+}
+
+.platform-link--mangaplus {
+  --platform-rgb: 255, 92, 57;
+}
+
+.platform-link--amazon {
+  --platform-rgb: 255, 184, 74;
+}
+
+.platform-link--fnac {
+  --platform-rgb: 67, 170, 255;
+}
+
+.platform-link--bookwalker {
+  --platform-rgb: 145, 118, 255;
+}
+
+.platform-link--izneo {
+  --platform-rgb: 68, 214, 143;
+}
+
+.volume-editor {
+  display: grid;
+  grid-template-columns: 34px minmax(48px, 1fr) auto minmax(48px, 1fr) 34px;
+  gap: 6px;
+  align-items: center;
+}
+
+.volume-editor button,
+.volume-editor input,
+.total-volume-field input {
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid rgba(202, 226, 236, 0.18);
+  border-radius: 8px;
+  background: rgba(6, 14, 24, 0.74);
+  color: #f6f2ec;
+  font: inherit;
+  font-weight: 900;
+}
+
+.volume-editor button {
+  cursor: pointer;
+}
+
+.volume-editor input,
+.total-volume-field input {
+  width: 100%;
+  padding: 0 8px;
+  text-align: center;
+}
+
+.volume-editor span {
+  color: rgba(246, 242, 236, 0.72);
+  font-weight: 900;
+}
+
+.total-volume-field {
+  display: grid;
+  grid-template-columns: auto 58px;
+  align-items: center;
+  gap: 7px;
+  color: rgba(199, 213, 229, 0.7);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .volume-editor {
+    grid-template-columns: 34px minmax(46px, 1fr) auto minmax(46px, 1fr) 34px;
+  }
+
+  .total-volume-field {
+    grid-template-columns: 1fr;
+  }
+}

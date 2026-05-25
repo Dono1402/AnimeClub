@@ -1,0 +1,171 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(12, 13, 12, 0.9), rgba(16, 16, 16, 0.98)),
+    url('../ressources/images/inscription.png') center top / cover fixed;
+  color: #f4ead8;
+}
+
+.public-social-page {
+  width: min(1320px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 28px 0 58px;
+}
+
+.page-head,
+.profile-panel,
+.state {
+  border: 1px solid rgba(244, 234, 216, 0.14);
+  border-radius: 8px;
+  background: rgba(22, 23, 21, 0.88);
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+  padding: 22px;
+}
+
+.eyebrow,
+.page-head p,
+.empty {
+  margin: 0;
+}
+
+.eyebrow {
+  color: #ffb05c;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #fff4e2;
+  font-family: Montserrat, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+h1 {
+  margin-top: 8px;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1;
+}
+
+.page-head p:last-child,
+.empty,
+.profile-chip-card small {
+  color: #cfc1ad;
+}
+
+.profile-panel,
+.state {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.social-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.social-tabs a {
+  border: 1px solid rgba(244, 234, 216, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #f4ead8;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.social-tabs a:hover,
+.social-tabs a:focus-visible,
+.social-tabs a.active {
+  border-color: #ff6f4f;
+  background: rgba(255, 111, 79, 0.18);
+  color: #fff4e2;
+}
+
+.profile-grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.profile-chip-card {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  justify-items: center;
+  min-height: 150px;
+  border: 1px solid rgba(244, 234, 216, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #f4ead8;
+  padding: 14px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.profile-chip-card:hover,
+.profile-chip-card:focus-visible {
+  border-color: #ff6f4f;
+}
+
+.profile-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #201411;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-avatar i {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  color: #ff6f4f;
+  font-style: normal;
+  font-weight: 900;
+}
+
+button[mat-stroked-button],
+a[mat-stroked-button] {
+  border-color: rgba(244, 234, 216, 0.18);
+  color: #f4ead8;
+}
+
+@media (max-width: 760px) {
+  .public-social-page {
+    width: min(100% - 24px, 760px);
+  }
+}

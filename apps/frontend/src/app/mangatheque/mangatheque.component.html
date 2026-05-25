@@ -1,0 +1,335 @@
+<app-menu-bar />
+
+<main class="mangatheque-page">
+  <section class="hero-panel" aria-label="Résumé de votre Mangathèque">
+    <div class="hero-copy">
+      <span class="hero-library-icon" aria-hidden="true"></span>
+      <div>
+        <h1>Ma <span>Mangathèque</span></h1>
+        <p>Gérez votre collection, suivez vos tomes lus et gardez une trace de chaque manga.</p>
+      </div>
+    </div>
+
+    <div class="hero-stats" aria-label="Statistiques principales">
+      @for (stat of statCards(); track stat.kind) {
+        <article [class]="'hero-stat hero-stat--' + stat.kind">
+          <span class="stat-icon" aria-hidden="true"></span>
+          <strong>
+            {{ stat.value }}
+            @if (stat.kind === 'score' && averageCatalogScore() !== null) {
+              <small>/10</small>
+            }
+          </strong>
+          <span>{{ stat.label }}</span>
+          <em>{{ stat.caption }}</em>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="library-toolbar" aria-label="Actions et filtres Mangathèque">
+    <a class="add-button" routerLink="/manga">
+      <span aria-hidden="true">+</span>
+      Ajouter un manga
+    </a>
+
+    <div class="status-tabs" role="list" aria-label="Statuts">
+      @for (filter of statusTabs; track filter.value) {
+        <button type="button" [class.active]="statusFilter() === filter.value" (click)="setStatusFilter(filter.value)">
+          {{ filter.label }}
+        </button>
+      }
+    </div>
+
+    <label class="search-field">
+      <span aria-hidden="true"></span>
+      <input type="search" placeholder="Rechercher dans ma collection..." [value]="query()" (input)="setQuery($event)" />
+    </label>
+
+    <label class="select-field sort-field">
+      <span>Trier par</span>
+      <select [value]="sortMode()" (change)="setSortMode($event)">
+        @for (sort of sortOptions; track sort.value) {
+          <option [value]="sort.value">{{ sort.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="select-field genre-field">
+      <span>Genre</span>
+      <select [value]="genreFilter()" (change)="setGenreFilter($event)">
+        <option value="ALL">Tous les genres</option>
+        @for (genre of genreOptions(); track genre) {
+          <option [value]="genre">{{ genre }}</option>
+        }
+      </select>
+    </label>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="clear-button" (click)="clearFilters()">Réinitialiser</button>
+    }
+  </section>
+
+  <section class="chip-panel" aria-label="Types et raccourcis">
+    <div class="type-chips" role="list" aria-label="Types">
+      @for (type of typeChips(); track type.value) {
+        <button type="button" [class.active]="typeFilter() === type.value" (click)="setTypeFilter(type.value)">
+          <strong>{{ typeCount(type.value) }}</strong>
+          {{ type.label }}
+        </button>
+      }
+    </div>
+
+    <div class="platform-links" aria-label="Raccourcis lecture et achat">
+      <a class="platform-link platform-link--all" [href]="externalUrl(allExternalLink)" target="_blank" rel="noopener">Tous</a>
+      @for (link of externalLinks; track link.id) {
+        <a [class]="'platform-link platform-link--' + link.id" [href]="externalUrl(link)" target="_blank" rel="noopener">
+          {{ link.label }}
+        </a>
+      }
+    </div>
+  </section>
+
+  @if (feedback()) {
+    <p class="feedback" role="status">{{ feedback() }}</p>
+  }
+
+  @if (loading()) {
+    <section class="state-panel">
+      <span class="loading-dot" aria-hidden="true"></span>
+      <p>Chargement de votre Mangathèque...</p>
+    </section>
+  } @else if (entries().length === 0) {
+    <section class="empty-panel">
+      <h2>Aucun manga dans votre Mangathèque.</h2>
+      <p>Ajoutez un manga depuis le catalogue pour commencer votre collection.</p>
+      <a routerLink="/manga">Ouvrir le catalogue</a>
+    </section>
+  } @else if (visibleEntries().length === 0) {
+    <section class="empty-panel">
+      <h2>Aucun résultat avec ces filtres.</h2>
+      <p>Changez le statut, le type, le genre ou la recherche.</p>
+      <button type="button" (click)="clearFilters()">Réinitialiser les filtres</button>
+    </section>
+  } @else {
+    <section class="library-sections">
+      @if ((statusFilter() === 'ALL' || statusFilter() === 'WATCHING' || statusFilter() === 'FAVORITES') && readingEntries().length > 0) {
+        <section class="entry-section entry-section--watching">
+          <header class="section-heading">
+            <div>
+              <h2>En cours</h2>
+              <span>{{ readingEntries().length }}</span>
+            </div>
+            <button type="button" (click)="showReading()">Voir tout ({{ readingCount() }})</button>
+          </header>
+
+          <div class="watching-grid">
+            @for (entry of readingEntries(); track entry.id) {
+              <article class="watching-card">
+                <a class="watching-poster" [routerLink]="mangaRoute(entry)">
+                  <img [src]="coverUrl(entry)" [alt]="entry.title" loading="lazy" />
+                </a>
+
+                <div class="watching-body">
+                  <header>
+                    <div>
+                      <h3>{{ entry.title }}</h3>
+                      <p>{{ entryYear(entry) }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="icon-button favorite-button"
+                      [class.active]="entry.favorite"
+                      [attr.aria-label]="entry.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                      (click)="toggleFavorite(entry)"
+                    >
+                      {{ entry.favorite ? '★' : '☆' }}
+                    </button>
+                  </header>
+
+                  <div class="card-meta">
+                    <span [class]="typeBadgeClass(entry)">{{ entryTypeLabel(entry) }}</span>
+                    <span [class]="statusPillClass(entry)">{{ statusLabel(displayStatus(entry)) }}</span>
+                  </div>
+
+                  <div class="progress-row">
+                    <strong>{{ volumeProgressLabel(entry) }}</strong>
+                    @if (catalogScore(entry) !== null) {
+                      <span class="score-badge">★ {{ catalogScoreLabel(entry) }}</span>
+                    }
+                  </div>
+
+                  <div class="progress-track" aria-hidden="true">
+                    <span [style.width.%]="progressPercent(entry)"></span>
+                  </div>
+
+                  <div class="volume-editor">
+                    <button type="button" (click)="updateReadVolumesByDelta(entry, -1)" [disabled]="entry.readVolumes <= 0">−</button>
+                    <input
+                      type="number"
+                      min="0"
+                      inputmode="numeric"
+                      [attr.max]="entry.totalVolumes > 0 ? entry.totalVolumes : null"
+                      [value]="entry.readVolumes"
+                      (change)="updateReadVolumes(entry, $event)"
+                    />
+                    <span>/</span>
+                    <input
+                      class="total-volume-input"
+                      type="number"
+                      min="0"
+                      inputmode="numeric"
+                      placeholder="?"
+                      [value]="entry.totalVolumes > 0 ? entry.totalVolumes : ''"
+                      (change)="updateTotalVolumes(entry, $event)"
+                    />
+                    <button type="button" (click)="updateReadVolumesByDelta(entry, 1)" [disabled]="entry.totalVolumes > 0 && entry.readVolumes >= entry.totalVolumes">+</button>
+                  </div>
+
+                  <div class="card-actions">
+                    <a [routerLink]="mangaRoute(entry)">Voir la fiche</a>
+                    <button type="button" (click)="advanceProgress(entry)">Mettre à jour</button>
+                    <button type="button" class="remove-button" aria-label="Retirer de la Mangathèque" (click)="remove(entry)">×</button>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      @if ((statusFilter() === 'ALL' || statusFilter() === 'COMPLETED' || statusFilter() === 'FAVORITES') && completedEntries().length > 0) {
+        <section class="entry-section entry-section--completed">
+          <header class="section-heading">
+            <div>
+              <h2>Terminé</h2>
+              <span>{{ completedEntries().length }}</span>
+            </div>
+            <button type="button" (click)="showCompleted()">Voir tout ({{ completedCount() }})</button>
+          </header>
+
+          <div class="completed-grid">
+            @for (entry of completedEntries(); track entry.id) {
+              <article class="completed-card">
+                <a class="completed-poster" [routerLink]="mangaRoute(entry)">
+                  <img [src]="coverUrl(entry)" [alt]="entry.title" loading="lazy" />
+                </a>
+
+                <div class="completed-body">
+                  <header>
+                    <div>
+                      <h3>{{ entry.title }}</h3>
+                      <p>{{ entryYear(entry) }} <span [class]="typeBadgeClass(entry)">{{ entryTypeLabel(entry) }}</span></p>
+                    </div>
+                    @if (catalogScore(entry) !== null) {
+                      <strong class="score-badge">★ {{ catalogScoreLabel(entry) }}</strong>
+                    }
+                  </header>
+
+                  <div class="completed-progress">
+                    <span>{{ shortVolumeProgressLabel(entry) }}</span>
+                    <label class="total-volume-field">
+                      Total
+                      <input
+                        type="number"
+                        min="0"
+                        inputmode="numeric"
+                        placeholder="?"
+                        [value]="entry.totalVolumes > 0 ? entry.totalVolumes : ''"
+                        (change)="updateTotalVolumes(entry, $event)"
+                      />
+                    </label>
+                    <select [value]="displayStatus(entry)" (change)="updateStatus(entry, $event)">
+                      @for (option of statusOptions; track option.value) {
+                        <option [value]="option.value" [selected]="option.value === displayStatus(entry)">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="compact-actions">
+                    <button
+                      type="button"
+                      class="icon-button favorite-button"
+                      [class.active]="entry.favorite"
+                      [attr.aria-label]="entry.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                      (click)="toggleFavorite(entry)"
+                    >
+                      {{ entry.favorite ? '★' : '☆' }}
+                    </button>
+                    <a class="icon-link" [routerLink]="mangaRoute(entry)" aria-label="Voir la fiche">↗</a>
+                    <button type="button" class="icon-button remove-button" aria-label="Retirer de la Mangathèque" (click)="remove(entry)">×</button>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      @if (otherEntries().length > 0) {
+        <section class="entry-section entry-section--other">
+          <header class="section-heading">
+            <div>
+              <h2>À lire et autres statuts</h2>
+              <span>{{ otherEntries().length }}</span>
+            </div>
+          </header>
+
+          <div class="completed-grid">
+            @for (entry of otherEntries(); track entry.id) {
+              <article class="completed-card">
+                <a class="completed-poster" [routerLink]="mangaRoute(entry)">
+                  <img [src]="coverUrl(entry)" [alt]="entry.title" loading="lazy" />
+                </a>
+
+                <div class="completed-body">
+                  <header>
+                    <div>
+                      <h3>{{ entry.title }}</h3>
+                      <p>{{ entryYear(entry) }} <span [class]="typeBadgeClass(entry)">{{ entryTypeLabel(entry) }}</span></p>
+                    </div>
+                    <span [class]="statusPillClass(entry)">{{ statusLabel(displayStatus(entry)) }}</span>
+                  </header>
+
+                  <div class="completed-progress">
+                    <span>{{ shortVolumeProgressLabel(entry) }}</span>
+                    <label class="total-volume-field">
+                      Total
+                      <input
+                        type="number"
+                        min="0"
+                        inputmode="numeric"
+                        placeholder="?"
+                        [value]="entry.totalVolumes > 0 ? entry.totalVolumes : ''"
+                        (change)="updateTotalVolumes(entry, $event)"
+                      />
+                    </label>
+                    <select [value]="displayStatus(entry)" (change)="updateStatus(entry, $event)">
+                      @for (option of statusOptions; track option.value) {
+                        <option [value]="option.value" [selected]="option.value === displayStatus(entry)">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="compact-actions">
+                    <button
+                      type="button"
+                      class="icon-button favorite-button"
+                      [class.active]="entry.favorite"
+                      [attr.aria-label]="entry.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                      (click)="toggleFavorite(entry)"
+                    >
+                      {{ entry.favorite ? '★' : '☆' }}
+                    </button>
+                    <a class="icon-link" [routerLink]="mangaRoute(entry)" aria-label="Voir la fiche">↗</a>
+                    <button type="button" class="icon-button remove-button" aria-label="Retirer de la Mangathèque" (click)="remove(entry)">×</button>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </section>
+  }
+</main>

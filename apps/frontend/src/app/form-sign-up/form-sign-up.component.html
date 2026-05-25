@@ -1,0 +1,259 @@
+<main class="signup-page">
+  <app-menu-bar />
+  <div class="signup-overlay" aria-hidden="true"></div>
+
+  <section class="signup-stage" aria-labelledby="signup-title">
+    <div class="signup-content">
+      <a class="brand" routerLink="/" aria-label="Retourner à l'accueil AnimeClub">
+        <span class="brand-flower" aria-hidden="true">✿</span>
+        <span class="brand-copy">
+          <strong>Anime<span>Club</span></strong>
+          <small>アニメクラブ</small>
+        </span>
+      </a>
+
+      <form class="signup-card" [formGroup]="formSignUp" (ngSubmit)="createAccount()" novalidate>
+        <div class="form-heading">
+          <h1 id="signup-title">Créer ton <span>compte</span></h1>
+          <p>Rejoins <strong>AnimeClub</strong> et sauvegarde ton aventure.</p>
+        </div>
+
+        <label class="field">
+          <span class="sr-only">Pseudo</span>
+          <span class="field-control">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input
+              type="text"
+              maxlength="16"
+              autocomplete="username"
+              formControlName="pseudo"
+              placeholder="Pseudo"
+              aria-describedby="pseudo-help pseudo-error"
+              [attr.aria-invalid]="formSignUp.controls.pseudo.invalid && formSignUp.controls.pseudo.touched"
+            />
+          </span>
+          <small id="pseudo-help">Choisis un pseudo unique</small>
+          @if (formSignUp.controls.pseudo.hasError('required') && formSignUp.controls.pseudo.touched) {
+            <small id="pseudo-error" class="field-error">Le pseudo est requis.</small>
+          }
+          @if (formSignUp.controls.pseudo.hasError('maxlength') && formSignUp.controls.pseudo.touched) {
+            <small id="pseudo-error" class="field-error">Le pseudo doit faire 16 caractères maximum.</small>
+          }
+        </label>
+
+        <label class="field">
+          <span class="sr-only">Adresse e-mail</span>
+          <span class="field-control">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16v16H4z" />
+              <path d="m22 6-10 7L2 6" />
+            </svg>
+            <input
+              type="email"
+              autocomplete="email"
+              formControlName="mail"
+              placeholder="Adresse e-mail"
+              aria-describedby="mail-help mail-error"
+              [attr.aria-invalid]="formSignUp.controls.mail.invalid && formSignUp.controls.mail.touched"
+            />
+          </span>
+          <small id="mail-help">Nous ne partagerons jamais ton e-mail.</small>
+          @if (formSignUp.controls.mail.hasError('required') && formSignUp.controls.mail.touched) {
+            <small id="mail-error" class="field-error">L'adresse e-mail est requise.</small>
+          }
+          @if (formSignUp.controls.mail.hasError('email') && formSignUp.controls.mail.touched) {
+            <small id="mail-error" class="field-error">Entre une adresse e-mail valide.</small>
+          }
+        </label>
+
+        <label class="field">
+          <span class="sr-only">Mot de passe</span>
+          <span class="field-control">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="new-password"
+              formControlName="password"
+              placeholder="Mot de passe"
+              aria-describedby="password-help password-error"
+              [attr.aria-invalid]="formSignUp.controls.password.invalid && formSignUp.controls.password.touched"
+            />
+            <button
+              class="field-action"
+              type="button"
+              (click)="togglePasswordVisibility('password')"
+              [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </span>
+          <small id="password-help">Minimum 8 caractères</small>
+          @if (formSignUp.controls.password.hasError('required') && formSignUp.controls.password.touched) {
+            <small id="password-error" class="field-error">Le mot de passe est requis.</small>
+          }
+          @if (formSignUp.controls.password.hasError('minlength') && formSignUp.controls.password.touched) {
+            <small id="password-error" class="field-error">Le mot de passe doit contenir au moins 8 caractères.</small>
+          }
+        </label>
+
+        <label class="field">
+          <span class="sr-only">Confirme ton mot de passe</span>
+          <span class="field-control">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <input
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              autocomplete="new-password"
+              formControlName="confirmPassword"
+              placeholder="Confirme ton mot de passe"
+              aria-describedby="confirm-password-help confirm-password-error"
+              [attr.aria-invalid]="formSignUp.hasError('passwordNotMatch') && formSignUp.controls.confirmPassword.touched"
+            />
+            <button
+              class="field-action"
+              type="button"
+              (click)="togglePasswordVisibility('confirmPassword')"
+              [attr.aria-label]="showConfirmPassword() ? 'Masquer la confirmation' : 'Afficher la confirmation'"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </span>
+          <small id="confirm-password-help">Les mots de passe doivent correspondre</small>
+          @if (formSignUp.hasError('passwordNotMatch') && formSignUp.controls.confirmPassword.touched) {
+            <small id="confirm-password-error" class="field-error">Les mots de passe ne correspondent pas.</small>
+          }
+        </label>
+
+        <div class="terms-row">
+          <input id="acceptTerms" type="checkbox" formControlName="acceptTerms" />
+          <label for="acceptTerms">
+            J'accepte les <a routerLink="/terms">Conditions d'utilisation</a> et la
+            <a routerLink="/privacy-policy">Politique de confidentialité</a>.
+          </label>
+        </div>
+        @if (formSignUp.controls.acceptTerms.hasError('required') && formSignUp.controls.acceptTerms.touched) {
+          <small class="field-error terms-error">Tu dois accepter les conditions pour créer ton compte.</small>
+        }
+
+        @if (errorMessage()) {
+          <p class="form-error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        @if (successMessage()) {
+          <div class="form-success" role="status">
+            <p>{{ successMessage() }}</p>
+            @if (confirmationLink()) {
+              <p class="dev-note">Mode local : lien de confirmation disponible.</p>
+              <a [href]="confirmationLink()">Confirmer mon e-mail</a>
+            }
+            <a routerLink="/change-validation-email">Je me suis trompé d'e-mail</a>
+            <a routerLink="/login">Aller à la connexion</a>
+          </div>
+        }
+
+        <button class="primary-action" type="submit" [disabled]="formSignUp.invalid || isSubmitting()">
+          <span aria-hidden="true">✿</span>
+          {{ isSubmitting() ? 'Création en cours...' : 'Créer mon compte' }}
+        </button>
+
+        <div class="divider" aria-hidden="true"><span>OU</span></div>
+
+        <button class="discord-action" type="button" (click)="continueWithDiscord()" [disabled]="isDiscordRedirecting()">
+          <svg class="discord-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M19.5 5.4A16.3 16.3 0 0 0 15.4 4l-.2.4a13 13 0 0 1 3.6 1.8 11.8 11.8 0 0 0-10.7 0 13 13 0 0 1 3.6-1.8L11.5 4a16.3 16.3 0 0 0-4.1 1.4C4.8 9.2 4 12.9 4.4 16.5A16.6 16.6 0 0 0 9.5 19l.7-1.1a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.8 11.8 0 0 0 10.2 0l.4.3a10.7 10.7 0 0 1-1.7.8l.7 1.1a16.6 16.6 0 0 0 5.1-2.5c.5-4.2-.8-7.8-3.1-11.1ZM9.8 14.2c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm4.4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"
+            />
+          </svg>
+          {{ isDiscordRedirecting() ? 'Redirection Discord...' : 'Continuer avec Discord' }}
+        </button>
+
+        <p class="switch-auth">
+          Déjà un compte ?
+          <a routerLink="/login">Se connecter</a>
+        </p>
+      </form>
+
+      <aside class="universe-card" aria-label="Aperçu AnimeClub">
+        <span class="sakura-mark" aria-hidden="true">✿</span>
+        <div>
+          <h2>Ton univers, ta liste.</h2>
+          <p>Ajoute tes animes et mangas préférés, suis ta progression, découvre de nouvelles œuvres et connecte-toi avec d'autres passionnés.</p>
+        </div>
+        <ul aria-hidden="true">
+          <li>
+            <svg viewBox="0 0 24 24">
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+            </svg>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24">
+              <path d="M6 4h12v16l-6-3-6 3V4Z" />
+            </svg>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24">
+              <path d="M4 19V5" />
+              <path d="M10 19V9" />
+              <path d="M16 19V3" />
+              <path d="M22 19v-7" />
+            </svg>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24">
+              <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
+              <circle cx="12" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.9" />
+              <path d="M16 3.1a4 4 0 0 1 0 7.8" />
+            </svg>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+              <path d="M8 9h8" />
+              <path d="M8 13h5" />
+            </svg>
+          </li>
+        </ul>
+      </aside>
+
+      <ul class="trust-strip" aria-label="Garanties AnimeClub">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+            <path d="m9 12 2 2 4-5" />
+          </svg>
+          <span><strong>Sécurisé</strong> Tes données sont protégées</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="5" y="11" width="14" height="10" rx="2" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          <span><strong>Confidentiel</strong> Aucun spam, jamais</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
+          </svg>
+          <span><strong>Fait pour toi</strong> 100% passion anime</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+</main>

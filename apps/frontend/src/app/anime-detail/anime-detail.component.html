@@ -1,0 +1,508 @@
+<app-menu-bar />
+
+<main class="anime-detail">
+  @if (loading()) {
+    <section class="state-panel">
+      <p>{{ 'common.loading' | t }}</p>
+    </section>
+  } @else if (anime(); as currentAnime) {
+    <section class="detail-hero" [style.--hero-image]="'url(' + heroBackgroundImageUrl(currentAnime) + ')'">
+      <div class="hero-shade"></div>
+
+      <div class="detail-shell hero-inner">
+        <a class="back-link" routerLink="/animes">‹ Retour</a>
+
+        <div
+          class="hero-content"
+          [class.has-poster-stack]="globalPosterStackSeasons(currentAnime).length > 1"
+          [class.has-tracking-panel]="account() && showHeroTrackingPanel(currentAnime)"
+        >
+          @if (globalPosterStackSeasons(currentAnime); as posterSeasons) {
+            @if (posterSeasons.length > 1) {
+              <div class="hero-poster hero-poster-stack" aria-label="Saisons disponibles">
+                @for (season of posterSeasons; track season.slug; let index = $index) {
+                  <a
+                    class="poster-stack-card"
+                    [routerLink]="seasonRoute(currentAnime, season)"
+                    [style.--stack-index]="index"
+                    [style.--stack-x]="posterStackX(index, posterSeasons.length)"
+                    [style.--stack-hover-x]="posterStackHoverX(index, posterSeasons.length)"
+                    [style.--stack-y]="posterStackY(index)"
+                    [style.--stack-rotation]="posterStackRotation(index)"
+                    [style.--stack-trail]="posterStackTrail(posterSeasons.length)"
+                    [style.--stack-z]="posterStackZIndex(index)"
+                    [attr.aria-label]="'Ouvrir ' + seasonCardTitle(currentAnime, season, index)"
+                  >
+                    <img [src]="season.imageUrl || currentAnime.imageUrl" [alt]="seasonCardTitle(currentAnime, season, index)" />
+                    <span class="poster-stack-code">{{ seasonCode(currentAnime, season) }}</span>
+                    <span class="poster-stack-title">{{ seasonCardTitle(currentAnime, season, index) }}</span>
+                  </a>
+                }
+              </div>
+            } @else {
+              <div
+                class="hero-poster"
+                (pointermove)="onPosterPointerMove($event)"
+                (pointerleave)="onPosterPointerLeave($event)"
+                (pointercancel)="onPosterPointerLeave($event)"
+                (mouseleave)="onPosterPointerLeave($event)"
+              >
+                <img [src]="detailImageUrl(currentAnime)" [alt]="detailTitle(currentAnime)" />
+              </div>
+            }
+          }
+
+          <div class="hero-copy">
+            <div class="status-row">
+              <span class="detail-eyebrow">{{ detailEyebrow(currentAnime) }}</span>
+              <a class="rank-pill" routerLink="/animes" [queryParams]="{ sort: 'rank-asc' }">
+                {{ rankLabel(targetRank(currentAnime)) }} Classement
+              </a>
+              <span>{{ mediaTypeLabel(currentAnime) }}</span>
+              <span class="airing-pill">{{ statusDisplay(targetStatus(currentAnime)) }}</span>
+            </div>
+
+            <h1>{{ detailTitle(currentAnime) }}</h1>
+
+            @if (targetJapaneseTitle(currentAnime)) {
+              <span class="japanese-title">{{ targetJapaneseTitle(currentAnime) }}</span>
+            }
+
+            <div class="hero-meta">
+              <span class="hero-stat">
+                <span class="meta-icon">★</span>
+                <span>
+                  <strong>{{ formatScore(targetScore(currentAnime)) }}</strong>
+                  <small>Score</small>
+                </span>
+              </span>
+              <span class="hero-stat">
+                <span class="meta-icon">ST</span>
+                <span>
+                  <strong>{{ studioLine(currentAnime) }}</strong>
+                  <small>Studio</small>
+                </span>
+              </span>
+              <span class="hero-stat">
+                <span class="meta-icon">AN</span>
+                <span>
+                  <strong>{{ releaseLabel(currentAnime) }}</strong>
+                  <small>Année</small>
+                </span>
+              </span>
+              @if (!isCurrentMovie()) {
+                <span class="hero-stat">
+                  <span class="meta-icon">EP</span>
+                  <span>
+                    <strong>{{ formatEpisodes(currentAnime) }}</strong>
+                    <small>Épisodes</small>
+                  </span>
+                </span>
+              }
+            </div>
+
+            <div class="tags">
+              @for (genre of targetGenres(currentAnime).slice(0, 7); track genre) {
+                <span>{{ genre }}</span>
+              }
+            </div>
+
+            @if (!account() || !showHeroTrackingPanel(currentAnime)) {
+              <div class="hero-actions">
+                @if (account()) {
+                  <button mat-raised-button type="button" (click)="addSelected(true)" [disabled]="saving() || !canTrackCurrentView()">
+                    {{ saving() ? ('anime.adding' | t) : ('anime.add' | t) }}
+                  </button>
+                  <a mat-stroked-button routerLink="/anime-library">{{ 'anime.viewList' | t }}</a>
+                } @else {
+                  <a mat-raised-button routerLink="/login">{{ 'anime.loginToAdd' | t }}</a>
+                  <a mat-stroked-button routerLink="/register">{{ 'anime.createAccount' | t }}</a>
+                }
+              </div>
+            }
+          </div>
+
+          @if (account() && showHeroTrackingPanel(currentAnime)) {
+            <aside class="hero-tracking-card hero-tracking-panel" aria-label="Mon suivi">
+              <div class="hero-tracking-head">
+                <span class="hero-tracking-title">
+                  <small>Mon suivi</small>
+                  <strong><i aria-hidden="true"></i>{{ currentTrackingStateLabel(currentAnime) }}</strong>
+                </span>
+                @if (selectedLibraryEntry()) {
+                  <button
+                    type="button"
+                    class="hero-tracking-remove"
+                    aria-label="Retirer cet anime de mon Animethèque"
+                    [disabled]="saving()"
+                    (click)="removeCurrentTracking()"
+                  >
+                    &times;
+                  </button>
+                }
+                <em
+                  [class.status-watching]="watchStatus() === 'WATCHING'"
+                  [class.status-completed]="watchStatus() === 'COMPLETED'"
+                  [class.status-planned]="watchStatus() === 'PLANNED'"
+                >
+                  <span aria-hidden="true">✓</span>{{ statusShortLabel(watchStatus()) }}
+                </em>
+              </div>
+
+              <div class="hero-tracking-summary">
+                <span>
+                  <small>Épisodes vus</small>
+                  <strong>{{ watchedEpisodes() }} / {{ currentTargetEpisodeLimitLabel(currentAnime) }}</strong>
+                </span>
+                <em>{{ percentLabel(currentTargetProgressPercent(currentAnime)) }}</em>
+              </div>
+
+              <div class="hero-target-progress-track" aria-hidden="true">
+                <i [style.width.%]="currentTargetProgressPercent(currentAnime)"></i>
+              </div>
+
+              <div class="hero-status-toggle" aria-label="Statut de suivi">
+                @for (option of primaryStatusOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class.active]="watchStatus() === option.value"
+                    [disabled]="trackingControlsDisabled(currentAnime)"
+                    (click)="setWatchStatus(option.value)"
+                  >
+                    {{ option.labelKey | t }}
+                  </button>
+                }
+              </div>
+
+              <div class="hero-episode-row">
+                <button
+                  type="button"
+                  [disabled]="trackingControlsDisabled(currentAnime) || watchStatus() === 'COMPLETED' || watchedEpisodes() <= 0"
+                  (click)="setWatchedEpisode(watchedEpisodes() - 1)"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  inputmode="numeric"
+                  [attr.max]="currentTargetEpisodeLimit(currentAnime) > 0 ? currentTargetEpisodeLimit(currentAnime) : null"
+                  [value]="watchedEpisodes()"
+                  [disabled]="trackingControlsDisabled(currentAnime) || watchStatus() === 'COMPLETED'"
+                  (change)="setWatchedEpisodeFromEvent($event)"
+                />
+                <em>/ {{ currentTargetEpisodeLimitLabel(currentAnime) }}</em>
+                <button
+                  type="button"
+                  [disabled]="trackingControlsDisabled(currentAnime) || watchStatus() === 'COMPLETED' || watchedEpisodes() >= currentTargetEpisodeMax(currentAnime)"
+                  (click)="setWatchedEpisode(watchedEpisodes() + 1)"
+                >
+                  +
+                </button>
+              </div>
+
+              <div class="hero-tracking-actions">
+                <button
+                  mat-raised-button
+                  class="hero-progress-save"
+                  type="button"
+                  (click)="addSelected()"
+                  [disabled]="saving() || !canTrackCurrentView() || !hasTrackingChanges(currentAnime)"
+                >
+                  <span aria-hidden="true">&#10003;</span>
+                  <span>{{ trackingSaveButtonLabel(currentAnime) }}</span>
+                </button>
+                <a mat-stroked-button routerLink="/anime-library">
+                  <span aria-hidden="true">↗</span>
+                  <span>{{ 'anime.viewList' | t }}</span>
+                </a>
+              </div>
+
+            </aside>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-shell detail-layout">
+      <div class="main-stack">
+        <section class="content-section">
+          <div class="section-title">
+            <span class="section-mark"></span>
+            <span class="section-icon">i</span>
+            <h2>Synopsis</h2>
+          </div>
+          <div class="text-card">
+            <p>{{ translatedSynopsis() || synopsisForCurrentView(currentAnime) }}</p>
+          </div>
+        </section>
+
+        @if (showSeasonHub(currentAnime)) {
+          <section class="content-section season-hub">
+            <div class="section-title season-title-row">
+              <span class="section-mark"></span>
+              <span class="section-icon">S</span>
+              <h2>Saisons & suivi</h2>
+              <span class="series-progress-copy">
+                Progression de la série : {{ overallProgressLabel(currentAnime) }}
+              </span>
+            </div>
+
+            <div class="series-progress-track" aria-hidden="true">
+              <span [style.width.%]="overallProgressPercent(currentAnime)"></span>
+            </div>
+
+            <div class="season-tabs" aria-label="Navigation des saisons">
+              <a [routerLink]="['/animes', currentAnime.slug]" [class.active]="!selectedSeason()">Vue globale</a>
+              @for (season of currentAnime.seasons; track season.slug; let index = $index) {
+                <a [routerLink]="seasonRoute(currentAnime, season)" [class.active]="selectedSeason()?.slug === season.slug">
+                  {{ seasonTabLabel(currentAnime, season, index) }}
+                </a>
+              }
+            </div>
+
+            <div class="season-card-grid">
+              @for (season of currentAnime.seasons; track season.slug; let index = $index) {
+                <a class="season-card" [routerLink]="seasonRoute(currentAnime, season)" [class.active]="selectedSeason()?.slug === season.slug">
+                  <span class="season-thumb">
+                    <img [src]="season.imageUrl || currentAnime.imageUrl" [alt]="seasonCardTitle(currentAnime, season, index)" loading="lazy" />
+                    <span>{{ seasonCode(currentAnime, season) }}</span>
+                  </span>
+                  <span class="season-card-copy">
+                    <strong>{{ seasonCardTitle(currentAnime, season, index) }}</strong>
+                    <small>{{ seasonCardMeta(currentAnime, season) }}</small>
+                    <span class="season-progress" aria-hidden="true">
+                      <i [style.width.%]="seasonProgressPercent(currentAnime, season)"></i>
+                    </span>
+                    <span class="season-card-bottom">
+                      <em>{{ seasonProgressLabel(currentAnime, season) }}</em>
+                      <b [class]="seasonStatusBadgeClass(currentAnime, season)">{{ seasonStatusBadgeLabel(currentAnime, season) }}</b>
+                    </span>
+                  </span>
+                </a>
+              }
+            </div>
+          </section>
+        }
+
+        <section class="content-section trailer-section" [class.empty]="!trailerSafeUrl()">
+          <div class="section-title">
+            <span class="section-mark"></span>
+            <span class="section-icon">▶</span>
+            <h2>Bande-annonce</h2>
+          </div>
+
+          @if (trailerSafeUrl(); as trailerUrl) {
+            <div class="trailer-frame">
+              <iframe
+                [src]="trailerUrl"
+                [title]="trailerTitle(currentAnime)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
+          } @else {
+            <div class="text-card">
+              <p>Aucun trailer YouTube disponible pour cette vue.</p>
+            </div>
+          }
+        </section>
+
+        @if (relatedCharacters().length > 0) {
+          <section class="content-section">
+            <div class="section-title">
+              <span class="section-mark"></span>
+              <span class="section-icon">P</span>
+              <h2>Personnages</h2>
+              <a class="section-action" routerLink="/characters">Voir tous les personnages →</a>
+            </div>
+
+            <div class="character-list">
+              @for (character of relatedCharacters(); track character.slug) {
+                <a [routerLink]="['/characters', character.slug]">
+                  @if (character.imageUrl) {
+                    <img [src]="character.imageUrl" [alt]="character.name" loading="lazy" />
+                  } @else {
+                    <span class="character-placeholder">{{ character.name.slice(0, 1).toUpperCase() }}</span>
+                  }
+                  <strong>{{ character.name }}</strong>
+                  <small>{{ character.role || favoritesLabel(character.favorites) }}</small>
+                  @if (character.nameKanji) {
+                    <em>{{ character.nameKanji }}</em>
+                  }
+                </a>
+              }
+            </div>
+          </section>
+        }
+
+        @if (visibleEpisodeOptions().length > 0 && !isCurrentMovie()) {
+          <section class="content-section">
+            <div class="section-title">
+              <span class="section-mark"></span>
+              <span class="section-icon">E</span>
+              <h2>{{ episodeSectionTitle(currentAnime) }}</h2>
+              @if (currentAnime.seasons.length > 1) {
+                <a class="section-action" [routerLink]="nextSeasonRoute(currentAnime)">Changer de saison →</a>
+              }
+            </div>
+
+            <div class="episode-list">
+              @for (episode of visibleEpisodeOptions(); track episode.value) {
+                <div class="episode-row" [class.seen]="isEpisodeWatched(episode)">
+                  <span class="episode-number">{{ episode.seasonEpisode || episode.value }}</span>
+                  <p>{{ episodeListTitle(episode) }}</p>
+                  <button
+                    type="button"
+                    class="episode-seen"
+                    [class.active]="isEpisodeWatched(episode)"
+                    [disabled]="!account()"
+                    (click)="markEpisodeWatched(episode)"
+                  >
+                    <span aria-hidden="true">◉</span>
+                    {{ isEpisodeWatched(episode) ? 'Vu' : 'Marquer vu' }}
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <aside class="side-stack">
+        <section class="side-card">
+          <h2><span class="side-icon">i</span>Informations</h2>
+          <dl>
+            <div>
+              <dt>Score</dt>
+              <dd>{{ formatScore(targetScore(currentAnime)) }}</dd>
+            </div>
+            <div>
+              <dt>Classement</dt>
+              <dd>{{ rankLabel(targetRank(currentAnime)) }}</dd>
+            </div>
+            <div>
+              <dt>Studio</dt>
+              <dd>{{ studioLine(currentAnime) }}</dd>
+            </div>
+            <div>
+              <dt>Type</dt>
+              <dd>{{ mediaTypeLabel(currentAnime) }}</dd>
+            </div>
+            <div>
+              <dt>Année</dt>
+              <dd>{{ releaseLabel(currentAnime) }}</dd>
+            </div>
+            <div>
+              <dt>Saison</dt>
+              <dd>{{ broadcastSeasonLabel(currentAnime) }}</dd>
+            </div>
+            <div>
+              <dt>Épisodes</dt>
+              <dd>{{ isCurrentMovie() ? 'Film' : formatEpisodes(currentAnime) }}</dd>
+            </div>
+            <div>
+              <dt>Statut</dt>
+              <dd>{{ statusDisplay(targetStatus(currentAnime)) }}</dd>
+            </div>
+            <div>
+              <dt>Popularité</dt>
+              <dd>{{ popularityLabel(targetPopularity(currentAnime)) }}</dd>
+            </div>
+            @if (targetJapaneseTitle(currentAnime)) {
+              <div>
+                <dt>Titre original</dt>
+                <dd>{{ targetJapaneseTitle(currentAnime) }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+
+        @if (isCurrentMovie() && (!account() || !showHeroTrackingPanel(currentAnime))) {
+          <section class="side-card library-side-card">
+            <h2><span class="side-icon">A</span>Mon Animethèque</h2>
+            <div class="library-panel">
+              <div class="library-control-group">
+                <span class="library-label">{{ trackingStatusLabel(currentAnime) }}</span>
+                <div class="status-toggle">
+                  @for (option of primaryStatusOptions; track option.value) {
+                    <button
+                      type="button"
+                      [class.active]="watchStatus() === option.value"
+                      [disabled]="trackingControlsDisabled(currentAnime)"
+                      (click)="setWatchStatus(option.value)"
+                    >
+                      {{ option.labelKey | t }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="movie-progress">
+                <span>Progression du film</span>
+                <strong>{{ movieProgressSummary() }}</strong>
+                <small>{{ movieProgressHint() }}</small>
+              </div>
+
+              @if (account()) {
+                <button
+                  mat-raised-button
+                  class="library-save-button"
+                  type="button"
+                  (click)="addSelected()"
+                  [disabled]="saving() || !canTrackCurrentView()"
+                >
+                  {{ saving() ? ('anime.adding' | t) : ('anime.add' | t) }}
+                </button>
+              } @else {
+                <a mat-raised-button class="library-save-button" routerLink="/login">{{ 'anime.loginToAdd' | t }}</a>
+              }
+            </div>
+          </section>
+        }
+
+        @if (feedback()) {
+          <p class="feedback">{{ feedback() }}</p>
+        }
+        @if (errorMessage()) {
+          <p class="error">{{ errorMessage() }}</p>
+        }
+
+        <section class="side-card">
+          <h2><span class="side-icon">P</span>Plateformes externes</h2>
+          <div class="watch-links">
+            <a class="watch-provider crunchyroll" [href]="watchSearchUrl(currentAnime, 'crunchyroll')" target="_blank" rel="noopener" aria-label="Crunchyroll" title="Crunchyroll">
+              <img class="watch-logo-img crunchyroll-logo-img" src="assets/platforms/crunchyroll.svg" alt="" aria-hidden="true" />
+            </a>
+            <a class="watch-provider netflix" [href]="watchSearchUrl(currentAnime, 'netflix')" target="_blank" rel="noopener" aria-label="Netflix" title="Netflix">
+              <span class="watch-logo netflix-logo" aria-hidden="true">N</span>
+            </a>
+            <a class="watch-provider prime-video" [href]="watchSearchUrl(currentAnime, 'prime')" target="_blank" rel="noopener" aria-label="Prime Video" title="Prime Video">
+              <span class="watch-logo prime-video-logo" aria-hidden="true">prime<br />video</span>
+            </a>
+            <a class="watch-provider adn" [href]="watchSearchUrl(currentAnime, 'adn')" target="_blank" rel="noopener" aria-label="ADN" title="ADN">
+              <img class="watch-logo-img adn-logo-img" src="assets/platforms/adn.svg" alt="" aria-hidden="true" />
+            </a>
+            <a class="watch-provider wakanim" [href]="watchSearchUrl(currentAnime, 'wakanim')" target="_blank" rel="noopener" aria-label="Wakanim" title="Wakanim">
+              <span class="watch-logo wakanim-logo" aria-hidden="true">W</span>
+            </a>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <h2><span class="side-icon">L</span>Liens rapides</h2>
+          <div class="quick-links">
+            <a [href]="malUrl(currentAnime)" target="_blank" rel="noopener">MyAnimeList <span>↗</span></a>
+            <a [href]="wikipediaSearchUrl(currentAnime)" target="_blank" rel="noopener">Wikipedia <span>↗</span></a>
+            <a [href]="youtubeSearchUrl(currentAnime)" target="_blank" rel="noopener">YouTube trailer <span>↗</span></a>
+          </div>
+        </section>
+      </aside>
+    </section>
+  } @else {
+    <section class="state-panel">
+      <p>Anime introuvable.</p>
+      <a mat-raised-button routerLink="/animes">Retour au catalogue</a>
+    </section>
+  }
+</main>

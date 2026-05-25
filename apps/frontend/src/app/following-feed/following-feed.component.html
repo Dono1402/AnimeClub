@@ -1,0 +1,349 @@
+<app-menu-bar />
+
+<main class="following-page">
+  <section class="social-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Communauté</p>
+      <h1>Mes suivis</h1>
+      <p>Découvre les dernières avancées et actions des personnes que tu suis.</p>
+      <div class="hero-actions">
+        <button mat-raised-button type="button" (click)="load()" [disabled]="loading() || refreshing()">
+          <span class="button-icon refresh-icon" aria-hidden="true"></span>
+          <span>{{ refreshing() ? 'Actualisation...' : 'Rafraîchir' }}</span>
+        </button>
+        <a mat-stroked-button routerLink="/profile">
+          <span class="button-icon user-icon" aria-hidden="true"></span>
+          <span>Mon profil</span>
+        </a>
+      </div>
+    </div>
+
+    <dl class="social-metrics" aria-label="Résumé social">
+      <div class="metric-card followers-metric">
+        <dt><span class="metric-icon user-icon" aria-hidden="true"></span>Suivis</dt>
+        <dd>{{ following().length }}</dd>
+        <small>{{ following().length > 1 ? 'personnes' : 'personne' }}</small>
+      </div>
+      <div class="metric-card subscribers-metric">
+        <dt><span class="metric-icon group-icon" aria-hidden="true"></span>Abonnés</dt>
+        <dd>{{ followers().length }}</dd>
+        <small>{{ followers().length > 1 ? 'personnes' : 'personne' }}</small>
+      </div>
+      <div class="metric-card online-metric">
+        <dt><span class="metric-icon online-icon" aria-hidden="true"></span>En ligne</dt>
+        <dd>{{ onlineProfilesCount() }}</dd>
+        <small>{{ onlineProfilesCount() > 1 ? 'personnes' : 'personne' }}</small>
+      </div>
+      <div class="metric-card activity-metric">
+        <dt><span class="metric-icon clock-icon" aria-hidden="true"></span>Dernière activité</dt>
+        <dd>{{ latestActivityLabel() }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  @if (loading()) {
+    <section class="state-panel">
+      <span class="state-spinner" aria-hidden="true"></span>
+      <span>Chargement des suivis...</span>
+    </section>
+  } @else {
+    @if (feedback()) {
+      <section class="state-panel warning">{{ feedback() }}</section>
+    }
+    @if (actionFeedback()) {
+      <section class="state-panel success">{{ actionFeedback() }}</section>
+    }
+
+    <section class="social-grid">
+      <aside class="profile-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Profils</p>
+            <h2>{{ activeProfilesTitle() }}</h2>
+          </div>
+        </div>
+
+        <nav class="social-tabs" aria-label="Listes sociales">
+          <a routerLink="/following" [queryParams]="{ tab: 'following' }" [class.active]="activeTab() === 'following'">
+            <span>Suivis</span>
+            <em>{{ profileTabCount('following') }}</em>
+          </a>
+          <a routerLink="/following" [queryParams]="{ tab: 'followers' }" [class.active]="activeTab() === 'followers'">
+            <span>Abonnés</span>
+            <em>{{ profileTabCount('followers') }}</em>
+          </a>
+        </nav>
+
+        <label class="profile-search">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input
+            type="search"
+            placeholder="Rechercher un profil"
+            [value]="profileSearch()"
+            (input)="setProfileSearch($event)"
+          />
+          @if (profileSearch()) {
+            <button type="button" aria-label="Effacer la recherche" (click)="clearProfileSearch()">×</button>
+          }
+        </label>
+
+        <div class="profile-list">
+          @for (profile of filteredActiveProfiles(); track profile.id) {
+            <article class="profile-row">
+              <a class="profile-row-main" [routerLink]="['/profile', profile.pseudo]">
+                <span class="profile-avatar">
+                  @if (profilePicture(profile); as pictureUrl) {
+                    <img [src]="pictureUrl" [alt]="displayName(profile)" loading="lazy" />
+                  } @else {
+                    <i>{{ initials(profile) }}</i>
+                  }
+                  <span
+                    class="presence-dot"
+                    [class.online]="profilePresenceState(profile) === 'online'"
+                    aria-hidden="true"
+                  ></span>
+                </span>
+
+                <span class="profile-copy">
+                  <strong>{{ displayName(profile) }}</strong>
+                  <small>@{{ profile.pseudo }}</small>
+                  <em>{{ profileSocialLine(profile) }}</em>
+                </span>
+              </a>
+
+              <span
+                class="profile-presence"
+                [class.online]="profilePresenceState(profile) === 'online'"
+              >{{ profileActivityLabel(profile) }}</span>
+
+              @if (canMessage(profile)) {
+                <a class="profile-mini-action" routerLink="/messages">Message</a>
+              } @else {
+                <a class="profile-mini-action" [routerLink]="['/profile', profile.pseudo]">Voir</a>
+              }
+            </article>
+          } @empty {
+            <div class="empty-state">
+              <strong>{{ activeEmptyMessage() }}</strong>
+              <span>Les suggestions à suivre peuvent alimenter ce fil en quelques clics.</span>
+            </div>
+          }
+        </div>
+
+        <a class="online-discovery-link" routerLink="/online" aria-label="Ouvrir les profils en ligne à découvrir">
+          <div class="online-discovery-head">
+            <span class="button-icon group-icon" aria-hidden="true"></span>
+            <div>
+              <strong>En ligne à découvrir</strong>
+              <small>Voir les profils connectés disponibles</small>
+            </div>
+            <i aria-hidden="true">›</i>
+          </div>
+        </a>
+      </aside>
+
+      <section class="activity-panel">
+        <div class="activity-toolbar">
+          <div>
+            <p class="eyebrow">Fil des suivis</p>
+            <h2>{{ filteredFeed().length }} activités</h2>
+          </div>
+
+          <label class="sort-control">
+            <span>Trier</span>
+            <select [value]="feedSort()" (change)="setFeedSort($event)">
+              @for (sort of feedSorts; track sort.value) {
+                <option [value]="sort.value">{{ sort.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <nav class="feed-filters" aria-label="Filtres du fil">
+          @for (filter of feedFilters; track filter.value) {
+            <button type="button" [class.active]="feedFilter() === filter.value" (click)="setFeedFilter(filter.value)">
+              <span>{{ filter.label }}</span>
+              <em>{{ feedFilterCount(filter.value) }}</em>
+            </button>
+          }
+        </nav>
+
+        <div class="feed-list">
+          @for (item of filteredFeed(); track itemKey(item)) {
+            <article class="feed-card" [class.feed-liked]="item.likedByCurrentAccount">
+              <header class="feed-card-head">
+                <a class="feed-profile" [routerLink]="['/profile', item.profile.pseudo]">
+                  <span class="profile-avatar small">
+                    @if (profilePicture(item.profile); as pictureUrl) {
+                      <img [src]="pictureUrl" [alt]="displayName(item.profile)" loading="lazy" />
+                    } @else {
+                      <i>{{ initials(item.profile) }}</i>
+                    }
+                  </span>
+                  <span>
+                    <strong>{{ displayName(item.profile) }}</strong>
+                    <small>@{{ item.profile.pseudo }}</small>
+                  </span>
+                </a>
+
+                <time>{{ updatedAtLabel(item) }}</time>
+              </header>
+
+              <p class="activity-line">{{ activityVerb(item) }}</p>
+
+              <div class="feed-entry">
+                <a class="entry-cover" [routerLink]="itemRoute(item)" [queryParams]="itemQueryParams(item)">
+                  @if (itemCoverUrl(item); as coverUrl) {
+                    <img [src]="coverUrl" [alt]="itemTitle(item)" loading="lazy" />
+                  } @else {
+                    <span class="cover-placeholder">{{ itemTypeLabel(item).slice(0, 1) }}</span>
+                  }
+                </a>
+
+                <a class="entry-copy" [routerLink]="itemRoute(item)" [queryParams]="itemQueryParams(item)">
+                  <span class="entry-badges">
+                    <span class="type-badge">{{ itemTypeLabel(item) }}</span>
+                    <span class="status-badge" [attr.data-status]="itemStatusClass(item)">{{ itemStatusLabel(item) }}</span>
+                  </span>
+                  <strong>{{ itemTitle(item) }}</strong>
+                  <small>{{ progressLabel(item) }}</small>
+                  <span class="entry-progress" aria-hidden="true">
+                    <i [style.width.%]="progressPercent(item)"></i>
+                  </span>
+                </a>
+
+                <div class="entry-actions">
+                  <a class="entry-action primary" [routerLink]="itemRoute(item)" [queryParams]="itemQueryParams(item)">
+                    <span class="button-icon view-icon" aria-hidden="true"></span>
+                    <span>Voir la fiche</span>
+                  </a>
+                  <button
+                    type="button"
+                    class="entry-action"
+                    [class.saved]="isAddedAlso(item) || addAlsoState(item) === 'saved'"
+                    [class.error]="addAlsoState(item) === 'error'"
+                    [disabled]="isAddedAlso(item) || addAlsoState(item) === 'saving' || addAlsoState(item) === 'saved'"
+                    (click)="addAlso($event, item)"
+                  >
+                    <span class="button-icon bookmark-icon" aria-hidden="true"></span>
+                    <span>{{ addAlsoButtonLabel(item) }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <footer class="feed-footer">
+                <button
+                  type="button"
+                  class="feed-like"
+                  [class.liked]="item.likedByCurrentAccount"
+                  [class.just-liked]="item.justLiked"
+                  [disabled]="activityEntryId(item) === null"
+                  [attr.aria-pressed]="item.likedByCurrentAccount"
+                  [attr.aria-label]="item.likedByCurrentAccount ? 'Retirer le like' : 'Liker cette activité'"
+                  (click)="toggleFeedLike($event, item)"
+                >
+                  <span class="heart-icon" aria-hidden="true"></span>
+                  <strong>{{ likeCount(item) }}</strong>
+                </button>
+              </footer>
+            </article>
+          } @empty {
+            <div class="empty-state feed-empty">
+              <strong>{{ feedEmptyMessage() }}</strong>
+              <span>Change de filtre ou suis davantage de profils pour alimenter ce fil.</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <aside class="insights-panel">
+        <section class="side-card">
+          <div class="side-card-title">
+            <span class="side-icon fire-icon" aria-hidden="true"></span>
+            <div>
+              <h3>Tendances de vos suivis</h3>
+              <p>Les animés les plus ajoutés récemment</p>
+            </div>
+          </div>
+
+          <div class="trend-list">
+            @for (trend of trendItems(); track trend.key; let index = $index) {
+              <a class="trend-row" [routerLink]="trend.route" [queryParams]="trend.queryParams">
+                <strong class="trend-rank">{{ index + 1 }}</strong>
+                @if (trend.coverUrl) {
+                  <img [src]="trend.coverUrl" [alt]="trend.title" loading="lazy" />
+                }
+                <span>
+                  <strong>{{ trend.title }}</strong>
+                  <small>{{ trend.adds }} {{ trend.adds > 1 ? 'ajouts' : 'ajout' }} • {{ trendTimeLabel(trend) }}</small>
+                </span>
+              </a>
+            } @empty {
+              <div class="empty-state compact">
+                <strong>Aucune tendance.</strong>
+                <span>Les tendances apparaîtront avec les prochaines activités.</span>
+              </div>
+            }
+          </div>
+
+          <button class="side-button" type="button" (click)="showTrendingFeed()">
+            <span>Voir toutes les tendances</span>
+            <i aria-hidden="true">›</i>
+          </button>
+        </section>
+
+        <section class="side-card">
+          <div class="side-card-title">
+            <span class="side-icon sparkle-icon" aria-hidden="true"></span>
+            <div>
+              <h3>Suggestions à suivre</h3>
+              <p>Des profils qui partagent tes goûts</p>
+            </div>
+          </div>
+
+          <div class="suggestion-list">
+            @for (profile of suggestedProfiles(); track profile.id) {
+              <article class="suggestion-row">
+                <a class="suggestion-profile" [routerLink]="['/profile', profile.pseudo]">
+                  <span class="profile-avatar tiny">
+                    @if (profilePicture(profile); as pictureUrl) {
+                      <img [src]="pictureUrl" [alt]="displayName(profile)" loading="lazy" />
+                    } @else {
+                      <i>{{ initials(profile) }}</i>
+                    }
+                    <span
+                      class="presence-dot"
+                      [class.online]="profilePresenceState(profile) === 'online'"
+                      aria-hidden="true"
+                    ></span>
+                  </span>
+                  <span>
+                    <strong>{{ displayName(profile) }}</strong>
+                    <small>@{{ profile.pseudo }}</small>
+                    <em>{{ profile.followersCount }} abonnés</em>
+                  </span>
+                </a>
+
+                <button type="button" [disabled]="isFollowPending(profile.id)" (click)="followSuggestion(profile)">
+                  {{ isFollowPending(profile.id) ? '...' : 'Suivre' }}
+                </button>
+              </article>
+            } @empty {
+              <div class="empty-state compact">
+                <strong>Aucune suggestion disponible.</strong>
+                <span>Tu suis déjà les profils publics disponibles.</span>
+              </div>
+            }
+          </div>
+
+          @if (hasMoreSuggestions()) {
+            <button class="side-button" type="button" (click)="showMoreSuggestions()">
+              <span>Voir plus de suggestions</span>
+              <i aria-hidden="true">›</i>
+            </button>
+          }
+        </section>
+      </aside>
+    </section>
+  }
+</main>

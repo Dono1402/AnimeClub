@@ -1,0 +1,161 @@
+<app-menu-bar />
+
+<main class="manga-detail">
+  @if (loading()) {
+    <section class="state-panel">
+      <p>Chargement du manga...</p>
+    </section>
+  } @else if (manga(); as currentManga) {
+    <section class="detail-hero" [style.--hero-image]="heroImageStyle(currentManga)">
+      <div class="hero-shade"></div>
+
+      <div class="detail-shell hero-inner">
+        <a class="back-link" routerLink="/manga">&lsaquo; Retour au catalogue</a>
+
+        <div class="hero-content">
+          <div class="hero-poster">
+            @if (currentManga.imageUrl) {
+              <img [src]="currentManga.imageUrl" [alt]="currentManga.title" />
+            }
+          </div>
+
+          <div class="hero-copy">
+            <div class="status-row">
+              <span class="detail-eyebrow">{{ currentManga.type || 'Manga' }}</span>
+              <a class="rank-pill" routerLink="/manga" [queryParams]="{ sort: 'rank-asc' }">
+                {{ rankLabel(currentManga.rank) }} Classement
+              </a>
+              <span>{{ statusDisplay(currentManga.status) }}</span>
+            </div>
+
+            <h1>{{ currentManga.title }}</h1>
+
+            @if (currentManga.titleJapanese) {
+              <span class="japanese-title">{{ currentManga.titleJapanese }}</span>
+            }
+
+            <div class="hero-meta">
+              <span class="hero-stat">
+                <span class="meta-icon" aria-hidden="true">&#9733;</span>
+                <span>
+                  <strong>{{ formatScore(currentManga.score) }}</strong>
+                  <small>Score</small>
+                </span>
+              </span>
+              <span class="hero-stat">
+                <span class="meta-icon" aria-hidden="true">VO</span>
+                <span>
+                  <strong>{{ volumeLabel(currentManga) }}</strong>
+                  <small>Tomes</small>
+                </span>
+              </span>
+              <span class="hero-stat">
+                <span class="meta-icon" aria-hidden="true">CH</span>
+                <span>
+                  <strong>{{ chapterLabel(currentManga) }}</strong>
+                  <small>Chapitres</small>
+                </span>
+              </span>
+              <span class="hero-stat">
+                <span class="meta-icon" aria-hidden="true">AN</span>
+                <span>
+                  <strong>{{ publishedLabel(currentManga) }}</strong>
+                  <small>Publication</small>
+                </span>
+              </span>
+            </div>
+
+            <div class="tags">
+              @for (genre of currentManga.genres.slice(0, 7); track genre) {
+                <span>{{ genre }}</span>
+              }
+            </div>
+
+            <div class="hero-actions">
+              @if (account()) {
+                <button mat-raised-button type="button" (click)="addToMangatheque()" [disabled]="saving() === 'saving' || inLibrary()">
+                  {{ libraryButtonLabel() }}
+                </button>
+                <a mat-stroked-button routerLink="/manga-library">Voir ma liste</a>
+              } @else {
+                <a mat-raised-button routerLink="/login">Se connecter pour ajouter</a>
+                <a mat-stroked-button routerLink="/register">Creer un compte</a>
+              }
+            </div>
+
+            @if (feedback()) {
+              <p class="feedback" role="status">{{ feedback() }}</p>
+            }
+            @if (errorMessage()) {
+              <p class="error" role="alert">{{ errorMessage() }}</p>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-shell detail-layout">
+      <div class="main-stack">
+        <section class="content-section">
+          <div class="section-title">
+            <span class="section-mark"></span>
+            <span class="section-icon">i</span>
+            <h2>Resume</h2>
+          </div>
+          <div class="text-card">
+            <p>{{ currentManga.synopsis }}</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-stack">
+        <section class="side-card">
+          <h2><span class="side-icon">i</span>Informations</h2>
+          <dl>
+            <div>
+              <dt>Score</dt>
+              <dd>{{ formatScore(currentManga.score) }}</dd>
+            </div>
+            <div>
+              <dt>Classement</dt>
+              <dd>{{ rankLabel(currentManga.rank) }}</dd>
+            </div>
+            <div>
+              <dt>Popularite</dt>
+              <dd>{{ popularityLabel(currentManga.popularity) }}</dd>
+            </div>
+            <div>
+              <dt>Type</dt>
+              <dd>{{ currentManga.type || 'Manga' }}</dd>
+            </div>
+            <div>
+              <dt>Statut</dt>
+              <dd>{{ statusDisplay(currentManga.status) }}</dd>
+            </div>
+            <div>
+              <dt>Publication</dt>
+              <dd>{{ publishedLabel(currentManga) }}</dd>
+            </div>
+            <div>
+              <dt>Auteur</dt>
+              <dd>{{ authorsLine(currentManga) }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="side-card">
+          <h2><span class="side-icon">L</span>Liens rapides</h2>
+          <div class="quick-links">
+            <a [href]="malUrl(currentManga)" target="_blank" rel="noopener">MyAnimeList <span>&#8599;</span></a>
+            <a [href]="wikipediaSearchUrl(currentManga)" target="_blank" rel="noopener">Wikipedia <span>&#8599;</span></a>
+          </div>
+        </section>
+      </aside>
+    </section>
+  } @else {
+    <section class="state-panel">
+      <p>{{ errorMessage() || 'Manga introuvable.' }}</p>
+      <a mat-raised-button routerLink="/manga">Retour au catalogue</a>
+    </section>
+  }
+</main>

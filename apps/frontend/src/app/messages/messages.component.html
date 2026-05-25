@@ -1,0 +1,366 @@
+<app-menu-bar />
+
+<main class="messages-page">
+  <section class="messages-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Messagerie</p>
+      <h1>Messages</h1>
+      <p>Discutez avec vos amis, échangez autour de vos animes préférés et partagez vos découvertes.</p>
+    </div>
+
+    <a class="hero-follow-link" routerLink="/following">
+      <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+      Voir mes suivis
+    </a>
+  </section>
+
+  @if (loading()) {
+    <section class="state">Chargement de la messagerie...</section>
+  } @else if (feedback() && friends().length === 0) {
+    <section class="state">{{ feedback() }}</section>
+  } @else {
+    <section class="messenger-shell">
+      <aside class="contacts-panel" aria-label="Contacts">
+        <div class="contact-tools">
+          <label class="contact-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="search"
+              placeholder="Rechercher un contact"
+              [value]="searchQuery()"
+              (input)="setSearchQuery($event)"
+            />
+          </label>
+
+          <button
+            type="button"
+            class="icon-button filter-button"
+            [attr.aria-label]="'Filtre contacts : ' + contactFilterLabel()"
+            [title]="'Filtre : ' + contactFilterLabel()"
+            (click)="toggleContactFilter($event)"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="M3 6h18" />
+              <path d="M7 12h10" />
+              <path d="M10 18h4" />
+            </svg>
+            <span>{{ contactFilterLabel() }}</span>
+          </button>
+        </div>
+
+        <div class="contact-list">
+          @for (friend of filteredFriends(); track friend.id) {
+            <button
+              type="button"
+              class="contact-card"
+              [class.active]="activeFriendId() === friend.id"
+              (click)="selectFriend(friend)"
+            >
+              <span class="avatar">
+                @if (profilePicture(friend); as pictureUrl) {
+                  <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                } @else {
+                  <i>{{ initials(friend) }}</i>
+                }
+                <span class="presence-dot" [class.online]="friend.online" aria-hidden="true"></span>
+              </span>
+
+              <span class="contact-copy">
+                <strong>{{ displayName(friend) }}</strong>
+                @if (friendTyping(friend.id)) {
+                  <em class="typing-preview">
+                    Écrit
+                    <span class="typing-dots" aria-hidden="true">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </span>
+                  </em>
+                } @else {
+                  <em>{{ lastMessageLabel(friend.id) }}</em>
+                }
+              </span>
+
+              <span class="contact-meta">
+                <small>{{ conversationTimeLabel(friend.id) }}</small>
+                @if (unreadCount(friend.id) > 0) {
+                  <b>{{ unreadCount(friend.id) > 9 ? '9+' : unreadCount(friend.id) }}</b>
+                }
+              </span>
+            </button>
+          } @empty {
+            <div class="empty-state contact-empty">
+              <h2>Aucun contact</h2>
+              <p>Les conversations sont disponibles avec vos amis mutuels.</p>
+            </div>
+          }
+        </div>
+
+        <a class="manage-contacts" routerLink="/following">
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 11h-6" />
+            <path d="M19 8v6" />
+          </svg>
+          Gérer mes contacts
+        </a>
+      </aside>
+
+      <section class="conversation-panel">
+        @if (activeFriend(); as friend) {
+          <header class="conversation-head">
+            <a class="conversation-profile" [routerLink]="['/profile', friend.pseudo]">
+              <span class="avatar">
+                @if (profilePicture(friend); as pictureUrl) {
+                  <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                } @else {
+                  <i>{{ initials(friend) }}</i>
+                }
+                <span class="presence-dot" [class.online]="friend.online" aria-hidden="true"></span>
+              </span>
+              <span>
+                <strong>{{ displayName(friend) }}</strong>
+                <small [class.online]="friend.online">{{ profileStatusLabel(friend) }}</small>
+              </span>
+            </a>
+
+            <div class="conversation-actions">
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Rechercher dans la conversation"
+                title="Rechercher dans la conversation"
+                (click)="toggleMessageSearch($event)"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+              </button>
+
+              <div class="conversation-menu-shell">
+                <button
+                  type="button"
+                  class="icon-button"
+                  aria-label="Options de conversation"
+                  title="Options"
+                  (click)="toggleConversationMenu($event)"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                    <circle cx="12" cy="12" r="1" />
+                    <circle cx="12" cy="5" r="1" />
+                    <circle cx="12" cy="19" r="1" />
+                  </svg>
+                </button>
+
+                @if (conversationMenuOpen()) {
+                  <div class="conversation-menu" (click)="$event.stopPropagation()">
+                    <button type="button" (click)="hideActiveConversation($event)">Masquer le chat</button>
+                    <button type="button" (click)="load()">Rafraîchir</button>
+                  </div>
+                }
+              </div>
+            </div>
+          </header>
+
+          @if (messageSearchOpen()) {
+            <div class="thread-search" (click)="$event.stopPropagation()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                type="search"
+                placeholder="Rechercher dans cette conversation"
+                [value]="messageSearchQuery()"
+                (input)="setMessageSearchQuery($event)"
+              />
+            </div>
+          }
+
+          @if (feedback()) {
+            <p class="feedback">{{ feedback() }}</p>
+          }
+
+          <div #messageList class="message-list" aria-live="polite">
+            @if (messageLoading()) {
+              <p class="empty">Chargement de la conversation...</p>
+            } @else if (messages().length === 0) {
+              <p class="empty">Aucun message. Envoyez le premier message.</p>
+            } @else if (messageGroups().length === 0) {
+              <p class="empty">Aucun message trouvé.</p>
+            } @else {
+              @for (group of messageGroups(); track group.id) {
+                <div class="date-divider">{{ group.label }}</div>
+
+                @for (message of group.messages; track message.id) {
+                  <article class="message-row" [class.own]="message.own">
+                    @if (!message.own) {
+                      <span class="message-avatar avatar">
+                        @if (profilePicture(message.sender); as senderPictureUrl) {
+                          <img [src]="senderPictureUrl" [alt]="displayName(message.sender)" loading="lazy" />
+                        } @else {
+                          <i>{{ initials(message.sender) }}</i>
+                        }
+                        <span class="presence-dot" [class.online]="message.sender.online" aria-hidden="true"></span>
+                      </span>
+                    }
+
+                    <div
+                      class="message-bubble"
+                      [class.own]="message.own"
+                      [class.image-only]="messageImageUrl(message) && !message.content"
+                    >
+                      @if (messageImageUrl(message); as imageUrl) {
+                        <button
+                          type="button"
+                          class="message-image-button"
+                          aria-label="Agrandir l'image"
+                          (click)="openImageViewer(imageUrl)"
+                        >
+                          <img class="message-image" [src]="imageUrl" alt="Image envoyée" decoding="async" />
+                        </button>
+                      }
+
+                      @if (message.content) {
+                        <p>{{ message.content }}</p>
+                      }
+
+                      <footer class="message-meta">
+                        <small>{{ messageTimeLabel(message) }}</small>
+                        @if (shouldShowMessageDelivery(message)) {
+                          <span
+                            class="message-status"
+                            [class.sent]="messageDeliveryStatus(message) === 'sent'"
+                            [class.delivered]="messageDeliveryStatus(message) === 'delivered'"
+                            [class.read]="messageDeliveryStatus(message) === 'read'"
+                            [attr.aria-label]="messageDeliveryLabel(message)"
+                            [attr.title]="messageDeliveryLabel(message)"
+                          >
+                            <i class="message-status-check" aria-hidden="true"></i>
+                            @if (messageDeliveryStatus(message) !== 'sent') {
+                              <i class="message-status-check" aria-hidden="true"></i>
+                            }
+                          </span>
+                        }
+                      </footer>
+                    </div>
+                  </article>
+                }
+              }
+
+              @if (activeFriendTyping()) {
+                <article class="message-row typing-row" aria-label="La personne écrit">
+                  <span class="message-avatar avatar">
+                    @if (profilePicture(friend); as friendPictureUrl) {
+                      <img [src]="friendPictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                    } @else {
+                      <i>{{ initials(friend) }}</i>
+                    }
+                    <span class="presence-dot online" aria-hidden="true"></span>
+                  </span>
+                  <div class="message-typing">
+                    <span class="typing-dots" aria-hidden="true">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </span>
+                  </div>
+                </article>
+              }
+            }
+          </div>
+
+          <footer class="composer" (click)="$event.stopPropagation()">
+            @if (selectedImagePreviewUrl(); as previewUrl) {
+              <div class="composer-image-preview">
+                <img [src]="previewUrl" alt="Image sélectionnée" />
+                <span>
+                  <strong>{{ selectedImage()?.name }}</strong>
+                  <small>Image jointe</small>
+                </span>
+                <button type="button" aria-label="Retirer l'image" (click)="clearSelectedImage()">Retirer</button>
+              </div>
+            }
+
+            <div class="composer-bar">
+              <input
+                #messageImageInput
+                class="image-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                (change)="selectImage($event)"
+              />
+
+              <button type="button" class="composer-icon-button" aria-label="Ajouter une image" (click)="messageImageInput.click()">
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </button>
+
+              <textarea
+                rows="1"
+                maxlength="1000"
+                placeholder="Écrire un message..."
+                [value]="draft()"
+                (input)="setDraft($event)"
+                (keydown.enter)="sendWithEnter($event)"
+              ></textarea>
+
+              <div class="emoji-shell">
+                <button type="button" class="composer-icon-button emoji-button" aria-label="Ajouter un emoji" (click)="toggleEmojiPicker($event)">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    <path d="M9 9h.01" />
+                    <path d="M15 9h.01" />
+                  </svg>
+                </button>
+
+                @if (emojiPickerOpen()) {
+                  <div class="emoji-picker" (click)="$event.stopPropagation()">
+                    @for (emoji of emojiOptions; track emoji) {
+                      <button type="button" (click)="insertEmoji(emoji, $event)">{{ emoji }}</button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <button type="button" class="send-button" [disabled]="!canSend()" aria-label="Envoyer le message" (click)="sendMessage()">
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M22 2 11 13" />
+                </svg>
+              </button>
+            </div>
+          </footer>
+        } @else {
+          <div class="empty-state centered">
+            <h2>Choisissez un contact</h2>
+            <p>Les conversations sont disponibles uniquement avec un follow mutuel.</p>
+            <a class="manage-contacts inline" routerLink="/following">Voir mes suivis</a>
+          </div>
+        }
+      </section>
+    </section>
+  }
+
+  @if (imageViewerUrl(); as imageUrl) {
+    <section class="message-image-viewer" role="dialog" aria-modal="true" aria-label="Image agrandie" (click)="closeImageViewer()">
+      <button type="button" class="image-viewer-close" aria-label="Fermer l'image" (click)="closeImageViewer()">
+        &times;
+      </button>
+      <img [src]="imageUrl" alt="Image agrandie" (click)="$event.stopPropagation()" />
+    </section>
+  }
+</main>

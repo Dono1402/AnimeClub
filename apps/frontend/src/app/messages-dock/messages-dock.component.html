@@ -1,0 +1,323 @@
+@if (account()) {
+  <section class="messages-dock" [class.open]="dockOpen()" [class.has-active-chat]="activeFriend()">
+    @if (dockOpen()) {
+      <aside class="messages-dock-panel" aria-label="Messages rapides">
+        <header class="dock-header">
+          @if (activeFriend(); as friend) {
+            <button type="button" class="dock-icon-button" aria-label="Retour aux conversations" (click)="backToList()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+
+            <a class="dock-chat-profile" [routerLink]="['/profile', friend.pseudo]">
+              <span class="dock-avatar">
+                @if (profilePicture(friend); as pictureUrl) {
+                  <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                } @else {
+                  <i>{{ initials(friend) }}</i>
+                }
+                <span class="presence-dot" [class.online]="friend.online" aria-hidden="true"></span>
+              </span>
+              <span>
+                <strong>{{ displayName(friend) }}</strong>
+                <small>@{{ friend.pseudo }}</small>
+              </span>
+            </a>
+          } @else {
+            <div class="dock-title">
+              @if (newConversationOpen()) {
+                <strong>Nouvelle conversation</strong>
+                <small>Choisis un ami</small>
+              } @else {
+                <strong>Messages</strong>
+                <small>{{ friends().length }} ami{{ friends().length > 1 ? 's' : '' }}</small>
+              }
+            </div>
+          }
+
+          <div class="dock-actions">
+            <a
+              class="dock-icon-link"
+              routerLink="/messages"
+              [queryParams]="fullMessagesQueryParams()"
+              aria-label="Ouvrir toute la messagerie"
+              title="Ouvrir toute la messagerie"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+                <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+                <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+              </svg>
+            </a>
+
+            <button type="button" class="dock-icon-button" aria-label="Fermer les messages" (click)="closeDock()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        @if (activeFriend(); as friend) {
+          <div #dockThread class="dock-thread" aria-live="polite">
+            @if (messageLoading()) {
+              <p class="dock-state">Chargement...</p>
+            } @else {
+              @for (message of messages(); track message.id) {
+                <article
+                  class="dock-message"
+                  [class.own]="message.own"
+                  [class.image-only]="isImageOnlyMessage(message)"
+                >
+                  @if (messageImageUrl(message); as imageUrl) {
+                    <button
+                      type="button"
+                      class="dock-message-image-button"
+                      aria-label="Agrandir l'image"
+                      (click)="openImageViewer(imageUrl)"
+                    >
+                      <img
+                        class="dock-message-image"
+                        [src]="imageUrl"
+                        alt="Image envoyee"
+                        decoding="async"
+                      />
+                    </button>
+                  }
+                  @if (message.content) {
+                    <p>{{ message.content }}</p>
+                  }
+                  <footer class="dock-message-meta">
+                    <small>{{ messageTimeLabel(message) }}</small>
+                    @if (shouldShowMessageDelivery(message)) {
+                      <span
+                        class="dock-message-status"
+                        [class.sent]="messageDeliveryStatus(message) === 'sent'"
+                        [class.delivered]="messageDeliveryStatus(message) === 'delivered'"
+                        [class.read]="messageDeliveryStatus(message) === 'read'"
+                        [attr.aria-label]="messageDeliveryLabel(message)"
+                        [attr.title]="messageDeliveryLabel(message)"
+                      >
+                        <i class="dock-message-status-check" aria-hidden="true"></i>
+                        @if (messageDeliveryStatus(message) === 'read') {
+                          <i class="dock-message-status-check" aria-hidden="true"></i>
+                        }
+                      </span>
+                    }
+                  </footer>
+                </article>
+              } @empty {
+                <p class="dock-state">Aucun message. Envoie le premier message.</p>
+              }
+              @if (activeFriendTyping()) {
+                <article class="dock-typing" aria-label="La personne ecrit">
+                  <span class="typing-dots" aria-hidden="true">
+                    <i></i>
+                    <i></i>
+                    <i></i>
+                  </span>
+                </article>
+              }
+            }
+          </div>
+
+          @if (feedback()) {
+            <p class="dock-feedback">{{ feedback() }}</p>
+          }
+
+          <footer class="dock-composer">
+            @if (selectedImagePreviewUrl(); as previewUrl) {
+              <div class="dock-image-preview">
+                <img [src]="previewUrl" alt="Image selectionnee" />
+                <span>{{ selectedImage()?.name }}</span>
+                <button type="button" aria-label="Retirer l'image" (click)="clearSelectedImage()">&times;</button>
+              </div>
+            }
+            <input
+              #dockImageInput
+              class="dock-image-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              (change)="selectImage($event)"
+            />
+            <button type="button" class="dock-attach-button" aria-label="Ajouter une image" (click)="dockImageInput.click()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l9.8-9.8a4 4 0 0 1 5.7 5.7l-9.8 9.8a2 2 0 1 1-2.8-2.8l8.8-8.8" />
+              </svg>
+            </button>
+            <textarea
+              rows="1"
+              maxlength="1000"
+              placeholder="Ecris un message..."
+              [value]="draft()"
+              (input)="setDraft($event)"
+              (keydown.enter)="sendWithEnter($event)"
+            ></textarea>
+            <button type="button" [disabled]="!canSend()" aria-label="Envoyer le message" (click)="sendMessage()">
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+            </button>
+          </footer>
+        } @else {
+          <div class="dock-list-shell">
+            @if (!newConversationOpen() && onlineFriends().length > 0) {
+              <section class="dock-online-strip" aria-label="Amis connectes">
+                @for (friend of onlineFriends(); track friend.id) {
+                  <button
+                    type="button"
+                    class="dock-online-bubble"
+                    [attr.aria-label]="'Ouvrir la conversation avec ' + displayName(friend)"
+                    [title]="displayName(friend)"
+                    (click)="startConversation(friend, $event)"
+                  >
+                    <span class="dock-avatar">
+                      @if (profilePicture(friend); as pictureUrl) {
+                        <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                      } @else {
+                        <i>{{ initials(friend) }}</i>
+                      }
+                      <span class="presence-dot online" aria-hidden="true"></span>
+                    </span>
+                    <small>{{ displayName(friend) }}</small>
+                  </button>
+                }
+              </section>
+            }
+
+            <div class="dock-list">
+              @if (loading()) {
+                <p class="dock-state">Chargement...</p>
+              } @else if (newConversationOpen()) {
+                @for (friend of newConversationFriends(); track friend.id) {
+                  <article class="dock-friend-row">
+                    <button type="button" class="dock-friend" (click)="startConversation(friend, $event)">
+                      <span class="dock-avatar">
+                        @if (profilePicture(friend); as pictureUrl) {
+                          <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                        } @else {
+                          <i>{{ initials(friend) }}</i>
+                        }
+                        <span class="presence-dot" [class.online]="friend.online" aria-hidden="true"></span>
+                      </span>
+                      <span class="dock-friend-copy">
+                        <strong>{{ displayName(friend) }}</strong>
+                        <em>@{{ friend.pseudo }}</em>
+                      </span>
+                    </button>
+                  </article>
+                } @empty {
+                  <div class="dock-empty">
+                    <strong>Aucune nouvelle conversation</strong>
+                    <small>Toutes tes discussions actives sont deja dans la liste.</small>
+                  </div>
+                }
+              } @else {
+                @for (friend of orderedFriends(); track friend.id) {
+                  <article class="dock-friend-row" [class.menu-open]="conversationMenuFriendId() === friend.id">
+                    <button type="button" class="dock-friend" (click)="selectFriend(friend)">
+                      <span class="dock-avatar">
+                        @if (profilePicture(friend); as pictureUrl) {
+                          <img [src]="pictureUrl" [alt]="displayName(friend)" loading="lazy" />
+                        } @else {
+                          <i>{{ initials(friend) }}</i>
+                        }
+                        <span class="presence-dot" [class.online]="friend.online" aria-hidden="true"></span>
+                      </span>
+                      <span class="dock-friend-copy">
+                        <strong>{{ displayName(friend) }}</strong>
+                        @if (friendTyping(friend.id)) {
+                          <em class="typing-preview">
+                            Ecrit
+                            <span class="typing-dots" aria-hidden="true">
+                              <i></i>
+                              <i></i>
+                              <i></i>
+                            </span>
+                          </em>
+                        } @else {
+                          <em>{{ lastMessageLabel(friend.id) }}</em>
+                        }
+                      </span>
+                      <span class="dock-friend-meta">
+                        <small>{{ conversationTimeLabel(friend.id) }}</small>
+                        @if (unreadCount(friend.id) > 0) {
+                          <b>{{ unreadCount(friend.id) > 9 ? '9+' : unreadCount(friend.id) }}</b>
+                        }
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="dock-friend-options"
+                      aria-label="Options du chat"
+                      (click)="toggleConversationMenu(friend.id, $event)"
+                    >
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </button>
+
+                    @if (conversationMenuFriendId() === friend.id) {
+                      <div class="dock-friend-menu" (click)="$event.stopPropagation()">
+                        <button type="button" (click)="hideConversation(friend, $event)">Supprimer le chat</button>
+                      </div>
+                    }
+                  </article>
+                } @empty {
+                  <div class="dock-empty">
+                    <strong>Aucun ami</strong>
+                    <small>Il faut un follow mutuel pour discuter.</small>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="messages-dock-launcher dock-new-conversation-button"
+            [class.open]="newConversationOpen()"
+            [attr.aria-label]="newConversationOpen() ? 'Fermer la creation de conversation' : 'Nouvelle conversation'"
+            [attr.aria-expanded]="newConversationOpen()"
+            title="Nouvelle conversation"
+            (click)="toggleNewConversation($event)"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+        }
+      </aside>
+    }
+
+    <button
+      type="button"
+      class="messages-dock-launcher"
+      [attr.aria-label]="dockOpen() ? 'Masquer les messages' : 'Ouvrir les messages'"
+      [title]="dockOpen() ? 'Masquer les messages' : 'Messages'"
+      (click)="toggleDock()"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+        <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.6 8.6 0 0 1-7.7 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 0 1 4 11.5a8.5 8.5 0 1 1 17 0Z" />
+      </svg>
+      @if (totalUnread() > 0) {
+        <span class="messages-dock-badge">{{ unreadLabel() }}</span>
+      }
+    </button>
+
+    @if (imageViewerUrl(); as imageUrl) {
+      <section class="dock-image-viewer" role="dialog" aria-modal="true" aria-label="Image agrandie" (click)="closeImageViewer()">
+        <button type="button" class="dock-image-viewer-close" aria-label="Fermer l'image" (click)="closeImageViewer()">
+          &times;
+        </button>
+        <img [src]="imageUrl" alt="Image agrandie" (click)="$event.stopPropagation()" />
+      </section>
+    }
+  </section>
+}

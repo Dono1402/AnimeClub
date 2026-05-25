@@ -1,0 +1,41 @@
+:host {
+  display: contents;
+}
+
+.presence-online-toasts {
+  z-index: 120;
+}
+
+.presence-online-toast::before {
+  background: linear-gradient(180deg, #47df9f, #5db7e8);
+}
+
+.presence-online-avatar {
+  position: relative;
+}
+
+.presence-live-dot {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #11150f;
+  border-radius: 50%;
+  background: #47df9f;
+  box-shadow: 0 0 14px rgba(71, 223, 159, 0.78);
+}
+
+.presence-online-copy em {
+  overflow: hidden;
+  color: #b8c9d7;
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presence-online-copy small {
+  color: #47df9f;
+}

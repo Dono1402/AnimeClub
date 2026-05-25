@@ -1,0 +1,262 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(14, 15, 13, 0.9), rgba(16, 16, 16, 0.98)),
+    url('../ressources/images/inscription.png') center top / cover fixed;
+  color: #f4ead8;
+}
+
+.settings-page {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 30px 0 58px;
+}
+
+.settings-card,
+.state {
+  border: 1px solid rgba(244, 234, 216, 0.14);
+  border-radius: 8px;
+  background: rgba(22, 23, 21, 0.9);
+}
+
+app-profile-editor {
+  display: block;
+}
+
+.section-title p,
+.success,
+.error,
+.state {
+  margin: 0;
+}
+
+.eyebrow {
+  color: #ffb05c;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 0;
+  color: #fff4e2;
+  font-family: Montserrat, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+.section-title p {
+  color: #cfc1ad;
+  line-height: 1.5;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.settings-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px;
+}
+
+.pseudo-card {
+  margin-top: 16px;
+}
+
+.pseudo-card.required {
+  border-color: rgba(240, 179, 95, 0.5);
+  background:
+    linear-gradient(135deg, rgba(240, 179, 95, 0.14), rgba(22, 23, 21, 0.9) 48%),
+    rgba(22, 23, 21, 0.9);
+  box-shadow: 0 0 0 1px rgba(240, 179, 95, 0.12);
+}
+
+.privacy-card {
+  margin-top: 16px;
+}
+
+.privacy-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.privacy-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 5px 12px;
+  align-items: center;
+  min-height: 82px;
+  border: 1px solid rgba(244, 234, 216, 0.13);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 111, 79, 0.1), rgba(255, 111, 79, 0.08)),
+    rgba(255, 255, 255, 0.035);
+  padding: 13px;
+}
+
+.privacy-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.privacy-toggle > span {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border: 1px solid rgba(244, 234, 216, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.privacy-toggle > span::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #cfc1ad;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.privacy-toggle input:checked + span {
+  border-color: rgba(255, 176, 92, 0.72);
+  background: rgba(65, 112, 69, 0.72);
+  box-shadow: 0 0 18px rgba(255, 176, 92, 0.18);
+}
+
+.privacy-toggle input:checked + span::before {
+  background: #f4ead8;
+  transform: translateX(20px);
+}
+
+.privacy-toggle strong,
+.privacy-toggle small {
+  min-width: 0;
+}
+
+.privacy-toggle strong {
+  color: #fff4e2;
+}
+
+.privacy-toggle small {
+  grid-column: 2;
+  color: #cfc1ad;
+  line-height: 1.35;
+}
+
+.section-title {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.section-title strong {
+  color: #f4ead8;
+}
+
+.success,
+.error {
+  border-radius: 6px;
+  font-weight: 800;
+  line-height: 1.4;
+  padding: 10px 12px;
+}
+
+.success {
+  border: 1px solid rgba(255, 142, 97, 0.26);
+  background: rgba(132, 48, 31, 0.34);
+  color: #dffced;
+}
+
+.error {
+  border: 1px solid rgba(255, 109, 91, 0.34);
+  background: rgba(92, 28, 24, 0.36);
+  color: #ffd0c8;
+}
+
+.settings-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 1200;
+  width: min(360px, calc(100vw - 32px));
+  border: 1px solid rgba(255, 142, 97, 0.36);
+  border-radius: 8px;
+  background: rgba(132, 48, 31, 0.94);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
+  color: #e9fff6;
+  font-weight: 800;
+  line-height: 1.35;
+  padding: 14px 16px;
+}
+
+.state {
+  padding: 18px;
+}
+
+button[mat-raised-button] {
+  justify-self: end;
+  background: #ff6f4f;
+  color: #141414;
+  font-weight: 800;
+}
+
+:host ::ng-deep .settings-page .mat-mdc-form-field,
+:host ::ng-deep .settings-page .mat-mdc-input-element,
+:host ::ng-deep .settings-page .mdc-floating-label {
+  color: #f4ead8 !important;
+}
+
+:host ::ng-deep .settings-page .mat-mdc-text-field-wrapper {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+:host ::ng-deep .settings-page .mat-mdc-form-field {
+  --mdc-outlined-text-field-caret-color: #ff6f4f;
+  --mdc-outlined-text-field-focus-label-text-color: #ff6f4f;
+  --mdc-outlined-text-field-focus-outline-color: #ff6f4f;
+  --mdc-outlined-text-field-hover-outline-color: rgba(244, 234, 216, 0.55);
+  --mdc-outlined-text-field-input-text-color: #f4ead8;
+  --mdc-outlined-text-field-label-text-color: #cfc1ad;
+  --mdc-outlined-text-field-outline-color: rgba(244, 234, 216, 0.24);
+}
+
+@media (max-width: 820px) {
+  .settings-page {
+    width: min(100% - 24px, 680px);
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-options {
+    grid-template-columns: 1fr;
+  }
+
+  button[mat-raised-button] {
+    justify-self: stretch;
+  }
+
+  .settings-toast {
+    right: 12px;
+    bottom: 12px;
+  }
+}

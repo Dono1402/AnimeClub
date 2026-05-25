@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 104" role="img" aria-label="AnimeClub">
+  <defs>
+    <filter id="soft-glow" x="-12%" y="-24%" width="124%" height="148%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2.6" flood-color="#ff5faf" flood-opacity="0.42"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="#ff5faf" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g filter="url(#soft-glow)">
+    <text x="2" y="48"
+          fill="#fff8fb"
+          font-family="Arial Black, Montserrat, Segoe UI, Arial, sans-serif"
+          font-size="48"
+          font-style="italic"
+          font-weight="900"
+          letter-spacing="-2">
+      Anime<tspan fill="#ff5faf">Club</tspan>
+    </text>
+    <text x="180" y="84"
+          fill="#f1e6ef"
+          font-family="Montserrat, Segoe UI, Arial, sans-serif"
+          font-size="17"
+          font-weight="500"
+          letter-spacing="8"
+          text-anchor="middle"
+          opacity="0.94">&#x30A2;&#x30CB;&#x30E1;&#x30AF;&#x30E9;&#x30D6;</text>
+  </g>
+  <path d="M46 100h268" stroke="#ff5faf" stroke-opacity="0.24" stroke-width="1"/>
+</svg>

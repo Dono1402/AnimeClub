@@ -1,0 +1,146 @@
+@use '../anime-browse/anime-browse.component.scss';
+
+.anime-card,
+.ranking-row {
+  appearance: none;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  text-align: left;
+}
+
+.ranking-row {
+  font: inherit;
+}
+
+.anime-card {
+  padding: 0;
+}
+
+.genre-chip {
+  flex: 0 0 auto;
+}
+
+.manga-page .advanced-filter-row {
+  grid-template-columns: minmax(170px, 240px);
+}
+
+.manga-page .anime-card::after {
+  content: none;
+}
+
+.manga-page .card-copy {
+  height: 38%;
+  min-height: 126px;
+  max-height: 138px;
+  padding: 22px 12px 56px;
+}
+
+.manga-library-feedback {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 12px;
+  border: 1px solid rgba(255, 111, 79, 0.32);
+  border-radius: 8px;
+  background: rgba(10, 14, 18, 0.78);
+  color: #fff4ed;
+  font-weight: 800;
+  padding: 12px 16px;
+}
+
+.manga-library-add-button {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 36px;
+  margin: 0;
+  border: 1px solid rgba(255, 111, 79, 0.42);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 111, 79, 0.95), rgba(239, 61, 53, 0.95));
+  color: #160b08;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 950;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 12px 26px rgba(255, 79, 53, 0.24);
+  padding: 0 8px;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.manga-library-add-button:hover,
+.manga-library-add-button:focus-visible {
+  border-color: rgba(255, 177, 124, 0.78);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 0 22px rgba(255, 111, 79, 0.42),
+    0 14px 30px rgba(255, 79, 53, 0.28);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.manga-library-add-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.manga-library-add-button.saved {
+  border-color: rgba(75, 220, 145, 0.44);
+  background: rgba(75, 220, 145, 0.14);
+  color: #bff8d8;
+}
+
+.manga-library-add-button.error {
+  border-color: rgba(255, 87, 87, 0.48);
+  background: rgba(255, 87, 87, 0.16);
+  color: #ffd1d1;
+}
+
+.catalog-loading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 116px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(18, 18, 18, 0.76);
+  padding: 20px 22px;
+}
+
+.catalog-loading h2,
+.catalog-loading p {
+  margin: 0;
+}
+
+.catalog-loading p {
+  margin-top: 8px;
+  color: #cfc7bd;
+  font-weight: 700;
+}
+
+.catalog-loading-spinner {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ff6f4f;
+  border-radius: 50%;
+  animation: manga-loading-spin 760ms linear infinite;
+}
+
+@keyframes manga-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,89 @@
+<app-menu-bar />
+
+<main
+  class="public-library-page"
+  [class.anime-library]="mode() === 'anime'"
+  [class.manga-library]="mode() === 'manga'"
+>
+  @if (loading()) {
+    <section class="state">Chargement de la liste...</section>
+  } @else if (profile(); as currentProfile) {
+    <section class="library-head">
+      <a class="avatar" [routerLink]="['/profile', currentProfile.pseudo]">
+        @if (profilePictureUrl(); as pictureUrl) {
+          <img [src]="pictureUrl" [alt]="displayName()" />
+        } @else {
+          <span>{{ initials() }}</span>
+        }
+      </a>
+
+      <div>
+        <p class="eyebrow">Liste publique</p>
+        <h1>{{ titleLabel() }} de {{ displayName() }}</h1>
+        <p>@{{ currentProfile.pseudo }} · {{ entryCount() }} entrée{{ entryCount() > 1 ? 's' : '' }}</p>
+      </div>
+
+      <a mat-stroked-button [routerLink]="['/profile', currentProfile.pseudo]">Profil</a>
+    </section>
+
+    <nav class="library-tabs" aria-label="Listes publiques">
+      <a [class.active]="mode() === 'anime'" [routerLink]="['/profile', currentProfile.pseudo, 'anime-library']">
+        Animethèque
+      </a>
+      <a [class.active]="mode() === 'manga'" [routerLink]="['/profile', currentProfile.pseudo, 'manga-library']">
+        Mangathèque
+      </a>
+    </nav>
+
+    @if (errorMessage()) {
+      <section class="state">
+        <strong>{{ errorMessage() }}</strong>
+      </section>
+    } @else if (mode() === 'anime') {
+      <section class="library-grid" aria-label="Animethèque publique">
+        @for (entry of animeEntries(); track entry.id) {
+          <a class="library-card" [routerLink]="animeRoute(entry)">
+            <img [src]="entry.coverUrl" [alt]="entry.title" loading="lazy" />
+            <span class="card-body">
+              <small>{{ statusLabel(entry.status) }}</small>
+              <strong>{{ entry.title }}</strong>
+              @if (entry.seasonTitle) {
+                <em>{{ entry.seasonTitle }}</em>
+              }
+              <span class="progress-track">
+                <i [style.width.%]="animeProgressPercent(entry)"></i>
+              </span>
+              <span>{{ animeProgressLabel(entry) }}</span>
+              <span>Mis à jour le {{ updatedAtLabel(entry.updatedAt) }}</span>
+            </span>
+          </a>
+        } @empty {
+          <p class="empty">Aucune entrée Animethèque publique.</p>
+        }
+      </section>
+    } @else {
+      <section class="library-grid" aria-label="Mangathèque publique">
+        @for (entry of mangaEntries(); track entry.id) {
+          <a class="library-card" [routerLink]="mangaRoute(entry)">
+            <img [src]="entry.coverUrl" [alt]="entry.title" loading="lazy" />
+            <span class="card-body">
+              <small>{{ statusLabel(entry.status) }}</small>
+              <strong>{{ entry.title }}</strong>
+              <span class="progress-track">
+                <i [style.width.%]="mangaProgressPercent(entry)"></i>
+              </span>
+              <span>{{ mangaProgressLabel(entry) }}</span>
+              @if (entry.updatedAt) {
+                <span>Mis à jour le {{ updatedAtLabel(entry.updatedAt) }}</span>
+              }
+            </span>
+          </a>
+        } @empty {
+          <p class="empty">Aucune entrée Mangathèque publique.</p>
+        }
+      </section>
+    }
+  } @else {
+    <section class="state">{{ errorMessage() }}</section>
+  }
+</main>

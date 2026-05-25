@@ -1,0 +1,236 @@
+<main class="landing-scroll" #scrollContainer (scroll)="onLandingScroll()" (wheel)="onLandingWheel($event)">
+  <section id="hero" class="landing-section landing-section--hero" [class.active]="activeSection() === 0">
+    <div class="section-bg" aria-hidden="true"></div>
+    <div class="section-shade" aria-hidden="true"></div>
+
+    <div class="hero-copy">
+      <p class="eyebrow">AnimeClub</p>
+      <h1>Crée ton <span>Animethèque</span> et ne perds plus jamais le fil de tes animes.</h1>
+      <p>
+        AnimeClub t'aide à organiser ta collection, suivre ta progression, découvrir de nouveaux animes et partager avec une communauté de passionnés.
+      </p>
+
+      <div class="landing-actions">
+        <a class="landing-button landing-button--primary" routerLink="/register" (click)="trackLandingCta('/register', 'create_account')">
+          Créer mon compte
+          <span aria-hidden="true">✦</span>
+        </a>
+        <a class="landing-button landing-button--secondary" routerLink="/animes" (click)="trackLandingCta('/animes', 'explore_catalog')">
+          Explorer le catalogue
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <div class="hero-badges" aria-label="Points forts AnimeClub">
+        <span><i aria-hidden="true">○</i> 100% dédié à ta passion</span>
+        <span><i aria-hidden="true">◇</i> Gratuit à commencer</span>
+        <span><i aria-hidden="true">◎</i> Communauté active</span>
+      </div>
+
+      <button class="scroll-hint" type="button" (click)="scrollToSection($event, 1)">
+        <span aria-hidden="true"></span>
+        Scrolle pour avancer
+        <b aria-hidden="true">›</b>
+      </button>
+    </div>
+
+    <div class="hero-dashboard" aria-label="Aperçu Animethèque">
+      <article class="glass-card library-card">
+        <h2>Ma Animethèque</h2>
+        <div class="library-layout">
+          <div class="member-card">
+            <img src="assets/brand/animeclub-logo-nav.png" alt="" aria-hidden="true" />
+            <strong>Kitsune</strong>
+            <small>Membre depuis 2024</small>
+            <em>Passionné</em>
+            <dl>
+              <div><dt>Séries suivies</dt><dd>128</dd></div>
+              <div><dt>Épisodes vus</dt><dd>2 345</dd></div>
+              <div><dt>Notes moyenne</dt><dd>8,7/10</dd></div>
+            </dl>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-head">
+              <strong>Progression</strong>
+              <a routerLink="/anime-library">Voir toute ma liste</a>
+            </div>
+            <div class="progress-layout">
+              <div class="progress-ring"><span>72%</span><small>à jour</small></div>
+              <ul>
+                <li><span class="dot dot--pink"></span> En cours <b>28</b></li>
+                <li><span class="dot dot--violet"></span> À voir <b>42</b></li>
+                <li><span class="dot dot--green"></span> Terminés <b>58</b></li>
+                <li><span class="dot dot--gold"></span> En pause <b>8</b></li>
+              </ul>
+            </div>
+            <h3>Derniers animes suivis</h3>
+            <div class="anime-strip">
+              <article><img src="assets/home-hero/dan-da-dan-hero.jpg" alt="" /><strong>Dan Da Dan</strong><small>S1 · Ep. 8</small></article>
+              <article><img src="assets/home-hero/blue-lock-hero.jpg" alt="" /><strong>Blue Lock</strong><small>S2 · Ep. 12</small></article>
+              <article><img src="assets/home-hero/oshi-no-ko-hero.jpg" alt="" /><strong>Oshi no Ko</strong><small>S2 · Ep. 8</small></article>
+              <article><img src="assets/home-hero/wind-breaker-hero.jpg" alt="" /><strong>Wind Breaker</strong><small>S1 · Ep. 10</small></article>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <aside class="hero-side">
+        <article class="glass-card stat-card"><span>Catalogue</span><strong>2 847</strong><small>animes référencés</small></article>
+        <article class="glass-card stat-card"><span>Communauté</span><strong>18.6K</strong><small>membres actifs</small></article>
+        <article class="glass-card stat-card"><span>Découverte</span><strong>Chaque jour</strong><small>recommandations et listes</small></article>
+      </aside>
+
+      <article class="glass-card community-cta">
+        <div>
+          <strong>Rejoins des milliers de passionnés</strong>
+          <small>Échange, partage et fais grandir ta passion au quotidien.</small>
+        </div>
+        <a routerLink="/register" (click)="trackLandingCta('/register', 'community_preview')">Rejoindre la communauté</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="community" class="landing-section landing-section--community" [class.active]="activeSection() === 1">
+    <div class="section-bg" aria-hidden="true"></div>
+    <div class="section-shade" aria-hidden="true"></div>
+
+    <div class="community-left">
+      <p class="eyebrow">Communauté</p>
+      <h2>Découvre ce que <span>ta communauté</span> ajoute</h2>
+      <p>Partage ta passion, suis tes amis, échange des avis et enrichis ton expérience chaque jour.</p>
+
+      <div class="community-stats">
+        <article><strong>18.6K</strong><span>membres actifs</span><small>+12% ce mois</small></article>
+        <article><strong>2 847</strong><span>avis partagés</span><small>+8% ce mois</small></article>
+        <article><strong>6 321</strong><span>commentaires</span><small>+15% ce mois</small></article>
+      </div>
+
+      <article class="glass-card follow-card">
+        <header><strong>Mes suivis</strong><a routerLink="/following">Voir tout</a></header>
+        <ul>
+          <li><span class="avatar avatar--one">K</span><b>Kitsune</b><em>En ligne</em></li>
+          <li><span class="avatar avatar--two">Y</span><b>Yume</b><em>En ligne</em></li>
+          <li><span class="avatar avatar--three">S</span><b>ShadowZ</b><em>Il y a 1h</em></li>
+          <li><span class="avatar avatar--four">L</span><b>Luna</b><em>Il y a 2h</em></li>
+        </ul>
+      </article>
+    </div>
+
+    <article class="glass-card feed-card" aria-label="Aperçu du fil d'activité">
+      <header>
+        <nav aria-label="Filtres du feed">
+          <span>Fil d'actualité</span>
+          <span>Discussions</span>
+          <span>Avis récents</span>
+          <span>Activité des amis</span>
+        </nav>
+        <button type="button">Tout</button>
+      </header>
+
+      <div class="feed-list">
+        <article>
+          <span class="avatar avatar--one">Y</span>
+          <div><strong>Yume</strong> a ajouté un anime à ses favoris <small>il y a 20 min</small></div>
+          <img src="assets/home-hero/call-of-the-night-hero.jpg" alt="" />
+          <em>Favori</em>
+        </article>
+        <article>
+          <span class="avatar avatar--three">S</span>
+          <div><strong>ShadowZ</strong> a terminé une saison <small>il y a 45 min</small></div>
+          <img src="assets/home-hero/dorohedoro-hero.jpg" alt="" />
+          <em class="done">Terminé</em>
+        </article>
+        <article>
+          <span class="avatar avatar--two">M</span>
+          <div><strong>Mika</strong> a mis à jour sa progression <small>il y a 1h</small></div>
+          <img src="assets/home-hero/kaiju-no-8-hero.jpg" alt="" />
+          <span class="mini-progress"><i></i></span>
+        </article>
+        <article>
+          <span class="avatar avatar--four">A</span>
+          <div><strong>Akira</strong> a commenté une fiche <small>il y a 2h</small></div>
+          <img src="assets/home-hero/wind-breaker-hero.jpg" alt="" />
+          <q>Un épisode incroyable.</q>
+        </article>
+      </div>
+
+      <a class="more-link" routerLink="/following">Voir plus d'activités</a>
+    </article>
+  </section>
+
+  <section id="profile" class="landing-section landing-section--profile" [class.active]="activeSection() === 2">
+    <div class="section-bg" aria-hidden="true"></div>
+    <div class="section-shade" aria-hidden="true"></div>
+
+    <div class="profile-showcase">
+      <article class="glass-card public-profile-card">
+        <img class="profile-cover" src="assets/auth/signup-background.png" alt="" aria-hidden="true" />
+        <div class="profile-avatar">S</div>
+        <h2>SakuraLuna</h2>
+        <small>@sakuraluna</small>
+        <p>Passionnée d'histoires et de mondes fantastiques. Toujours à la recherche de la prochaine pépite.</p>
+        <div class="profile-stats">
+          <span><strong>128</strong>Animes vus</span>
+          <span><strong>45</strong>Mangas lus</span>
+          <span><strong>36</strong>Listes</span>
+          <span><strong>2.3K</strong>Abonnés</span>
+        </div>
+        <a routerLink="/profile">Voir mon profil public</a>
+      </article>
+
+      <article class="glass-card badge-card">
+        <h3>Badges récents</h3>
+        <div>
+          <span>Marathonien<small>50 animés</small></span>
+          <span>Explorateur<small>10 genres</small></span>
+          <span>Collectionneur<small>100 mangas</small></span>
+          <span>Contributeur<small>50 avis</small></span>
+        </div>
+      </article>
+
+      <article class="glass-card favorites-card">
+        <h3>Mes favoris</h3>
+        <div class="anime-strip">
+          <article><img src="assets/home-hero/call-of-the-night-hero.jpg" alt="" /><strong>Frieren</strong></article>
+          <article><img src="assets/home-hero/dan-da-dan-hero.jpg" alt="" /><strong>Dan Da Dan</strong></article>
+          <article><img src="assets/home-hero/blue-lock-hero.jpg" alt="" /><strong>Blue Lock</strong></article>
+          <article><img src="assets/home-hero/oshi-no-ko-hero.jpg" alt="" /><strong>Oshi no Ko</strong></article>
+        </div>
+      </article>
+    </div>
+
+    <div class="profile-copy">
+      <p class="eyebrow">Rejoins l'aventure</p>
+      <h2>Ton profil, <span>tes listes</span>, ta communauté</h2>
+      <p>
+        AnimeClub, c'est bien plus qu'un catalogue : c'est ton espace personnel pour suivre tes aventures, partager tes passions et échanger avec des fans comme toi.
+      </p>
+
+      <div class="profile-benefits">
+        <span>Gratuit<br /><small>pour commencer</small></span>
+        <span>Suivi simplifié<br /><small>anime et manga</small></span>
+        <span>Communauté active<br /><small>et bienveillante</small></span>
+      </div>
+
+      <div class="landing-actions">
+        <a class="landing-button landing-button--primary" routerLink="/register" (click)="trackLandingCta('/register', 'profile_signup')">
+          Créer mon compte
+          <span aria-hidden="true">✦</span>
+        </a>
+        <a class="landing-button landing-button--secondary" routerLink="/animes" (click)="trackLandingCta('/animes', 'profile_catalog')">
+          Explorer le catalogue
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <small class="profile-note">Rejoins les premiers membres AnimeClub dès maintenant.</small>
+    </div>
+  </section>
+</main>
+
+<aside class="landing-rail" aria-label="Navigation des sections">
+  @for (section of sectionLabels; track section; let index = $index) {
+    <button type="button" [class.active]="activeSection() === index" [attr.aria-label]="'Aller à la section ' + section" (click)="scrollToSection($event, index)"></button>
+  }
+  <button class="landing-next" type="button" aria-label="Section suivante" (click)="scrollNext($event)">›</button>
+</aside>

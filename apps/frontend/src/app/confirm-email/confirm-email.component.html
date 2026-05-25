@@ -1,0 +1,22 @@
+<div class="confirm-page">
+  <app-menu-bar />
+
+  <main class="container-form">
+    <mat-card>
+      <div class="content">
+        <p class="eyebrow">{{ 'confirm.eyebrow' | t }}</p>
+        <h1>{{ isConfirmed() ? ('confirm.confirmed' | t) : ('confirm.title' | t) }}</h1>
+        <p>{{ message() }}</p>
+
+        @if (isLoading()) {
+          <span class="state">{{ 'confirm.checking' | t }}</span>
+        } @else if (isConfirmed()) {
+          <a mat-stroked-button routerLink="/login">{{ 'nav.login' | t }}</a>
+        } @else {
+          <a mat-stroked-button routerLink="/change-validation-email">Changer l'e-mail de validation</a>
+          <a mat-stroked-button routerLink="/register">{{ 'confirm.newAccount' | t }}</a>
+        }
+      </div>
+    </mat-card>
+  </main>
+</div>

@@ -1,0 +1,463 @@
+<app-menu-bar></app-menu-bar>
+
+<main class="anime-page">
+  <div class="backdrop backdrop-base" [style.background-image]="backgroundBaseStyle()"></div>
+  @for (layer of backgroundTransitionLayers(); track layer.id) {
+    <div
+      class="backdrop backdrop-fade"
+      [class.visible]="layer.visible"
+      [style.background-image]="layer.style"
+    ></div>
+  }
+
+  <section class="catalog-hero">
+    <p class="eyebrow">Catalogue Jikan</p>
+    <h1>Animes</h1>
+    <p class="catalog-subtitle">Explore le catalogue complet d'animes, des classiques intemporels aux dernières nouveautés.</p>
+    <div class="catalog-stat">
+      <span class="catalog-stat-icon" aria-hidden="true"></span>
+      <strong>{{ catalogTotalItems() || totalItems() }}</strong>
+      <small>titres référencés</small>
+    </div>
+  </section>
+
+  <section class="browse-controls">
+    <div class="search-row">
+      <div class="anime-search">
+        <label class="anime-search-control">
+          <span class="control-icon search-control-icon" aria-hidden="true"></span>
+          <input
+            type="search"
+            [value]="query()"
+            autocomplete="off"
+            placeholder="Rechercher un anime..."
+            (focus)="openAnimeSearchSuggestions()"
+            (blur)="closeAnimeSearchSuggestions()"
+            (input)="setQuery($event)"
+            (keydown.enter)="openFirstAnimeSuggestion()"
+            (keydown.escape)="closeAnimeSearchSuggestions()"
+          />
+        </label>
+
+      </div>
+
+      <div class="select-control custom-select" [class.open]="openFilterMenu() === 'sort'" (click)="$event.stopPropagation()">
+        <span class="control-icon sort-control-icon" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="select-trigger"
+          [attr.aria-expanded]="openFilterMenu() === 'sort'"
+          (click)="toggleFilterMenu('sort', $event)"
+        >
+          <span class="select-copy">
+            <small>Trier par</small>
+            <strong>{{ sortModeLabel() }}</strong>
+          </span>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </button>
+        @if (openFilterMenu() === 'sort') {
+          <div class="select-menu" role="listbox">
+            @for (option of sortOptions; track option.value) {
+              <button
+                type="button"
+                class="select-option"
+                [class.active]="sortMode() === option.value"
+                (click)="selectSortMode(option.value, $event)"
+              >
+                {{ option.labelKey | t }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="select-control custom-select" [class.open]="openFilterMenu() === 'type'" (click)="$event.stopPropagation()">
+        <span class="control-icon type-control-icon" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="select-trigger"
+          [attr.aria-expanded]="openFilterMenu() === 'type'"
+          (click)="toggleFilterMenu('type', $event)"
+        >
+          <span class="select-copy">
+            <small>Type</small>
+            <strong>{{ typeFilterLabel() }}</strong>
+          </span>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </button>
+        @if (openFilterMenu() === 'type') {
+          <div class="select-menu" role="listbox">
+            <button
+              type="button"
+              class="select-option"
+              [class.active]="selectedType() === allFilterValue"
+              (click)="selectType(allFilterValue, $event)"
+            >
+              Tous
+            </button>
+            @for (type of availableTypes(); track type) {
+              <button
+                type="button"
+                class="select-option"
+                [class.active]="selectedType() === type"
+                (click)="selectType(type, $event)"
+              >
+                {{ type }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="select-control custom-select" [class.open]="openFilterMenu() === 'status'" (click)="$event.stopPropagation()">
+        <span class="control-icon status-control-icon" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="select-trigger"
+          [attr.aria-expanded]="openFilterMenu() === 'status'"
+          (click)="toggleFilterMenu('status', $event)"
+        >
+          <span class="select-copy">
+            <small>Statut</small>
+            <strong>{{ statusFilterLabel() }}</strong>
+          </span>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </button>
+        @if (openFilterMenu() === 'status') {
+          <div class="select-menu" role="listbox">
+            <button
+              type="button"
+              class="select-option"
+              [class.active]="selectedStatus() === allFilterValue"
+              (click)="selectStatus(allFilterValue, $event)"
+            >
+              Tous
+            </button>
+            @for (status of availableStatuses(); track status) {
+              <button
+                type="button"
+                class="select-option"
+                [class.active]="selectedStatus() === status"
+                (click)="selectStatus(status, $event)"
+              >
+                {{ status }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="select-control custom-select" [class.open]="openFilterMenu() === 'year'" (click)="$event.stopPropagation()">
+        <span class="control-icon year-control-icon" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="select-trigger"
+          [attr.aria-expanded]="openFilterMenu() === 'year'"
+          (click)="toggleFilterMenu('year', $event)"
+        >
+          <span class="select-copy">
+            <small>Année</small>
+            <strong>{{ yearFilterLabel() }}</strong>
+          </span>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </button>
+        @if (openFilterMenu() === 'year') {
+          <div class="select-menu" role="listbox">
+            <button
+              type="button"
+              class="select-option"
+              [class.active]="selectedYear() === allFilterValue"
+              (click)="selectYear(allFilterValue, $event)"
+            >
+              Toutes
+            </button>
+            @for (year of availableYears(); track year) {
+              <button
+                type="button"
+                class="select-option"
+                [class.active]="selectedYear() === year"
+                (click)="selectYear(year, $event)"
+              >
+                {{ year }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="more-filter-button"
+        [class.active]="advancedFiltersOpen()"
+        [attr.aria-expanded]="advancedFiltersOpen()"
+        (click)="toggleAdvancedFilters()"
+      >
+        <span class="control-icon filter-icon" aria-hidden="true"></span>
+        Plus de filtres
+      </button>
+
+      @if (activeFilterChips().length > 0) {
+        <div class="active-filter-row">
+          <div class="active-filter-chips" aria-label="Filtres actifs">
+            @for (chip of activeFilterChips(); track chip.key) {
+              <button type="button" class="active-filter-chip" (click)="removeFilterChip(chip.key)">
+                {{ chip.label }}
+                <span aria-hidden="true">&times;</span>
+              </button>
+            }
+          </div>
+          <button type="button" class="clear-filter-button" (click)="clearAllFilters()">
+            Tout effacer
+            <span class="trash-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      }
+
+      @if (advancedFiltersOpen()) {
+        <div class="advanced-filter-row">
+          <div class="select-control custom-select advanced-select" [class.open]="openFilterMenu() === 'season'" (click)="$event.stopPropagation()">
+            <span class="control-icon season-control-icon" aria-hidden="true"></span>
+            <button
+              type="button"
+              class="select-trigger"
+              [attr.aria-expanded]="openFilterMenu() === 'season'"
+              (click)="toggleFilterMenu('season', $event)"
+            >
+              <span class="select-copy">
+                <small>Saison</small>
+                <strong>{{ seasonFilterLabel() }}</strong>
+              </span>
+              <span class="select-arrow" aria-hidden="true"></span>
+            </button>
+            @if (openFilterMenu() === 'season') {
+              <div class="select-menu" role="listbox">
+                <button
+                  type="button"
+                  class="select-option"
+                  [class.active]="selectedSeason() === allFilterValue"
+                  (click)="selectSeason(allFilterValue, $event)"
+                >
+                  Toutes
+                </button>
+                @for (season of seasonFilterOptions; track season.value) {
+                  <button
+                    type="button"
+                    class="select-option"
+                    [class.active]="selectedSeason() === season.value"
+                    (click)="selectSeason(season.value, $event)"
+                  >
+                    {{ season.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="select-control custom-select advanced-select" [class.open]="openFilterMenu() === 'score'" (click)="$event.stopPropagation()">
+            <span class="control-icon score-control-icon" aria-hidden="true"></span>
+            <button
+              type="button"
+              class="select-trigger"
+              [attr.aria-expanded]="openFilterMenu() === 'score'"
+              (click)="toggleFilterMenu('score', $event)"
+            >
+              <span class="select-copy">
+                <small>Score</small>
+                <strong>{{ minScoreFilterLabel() }}</strong>
+              </span>
+              <span class="select-arrow" aria-hidden="true"></span>
+            </button>
+            @if (openFilterMenu() === 'score') {
+              <div class="select-menu" role="listbox">
+                <button
+                  type="button"
+                  class="select-option"
+                  [class.active]="selectedMinScore() === allFilterValue"
+                  (click)="selectMinScore(allFilterValue, $event)"
+                >
+                  Tous
+                </button>
+                @for (scoreFilter of minScoreFilterOptions; track scoreFilter.value) {
+                  <button
+                    type="button"
+                    class="select-option"
+                    [class.active]="selectedMinScore() === scoreFilter.value"
+                    (click)="selectMinScore(scoreFilter.value, $event)"
+                  >
+                    {{ scoreFilter.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="filter-panel">
+      <div class="filter-heading">
+        <span>{{ 'anime.categories' | t }}</span>
+      </div>
+
+      <div class="genre-tabs" role="list" [attr.aria-label]="'anime.categories' | t">
+        <button
+          type="button"
+          class="genre-chip"
+          [class.active]="!previewMode() && selectedGenre() === allGenresValue"
+          (click)="setGenre(allGenresValue)"
+        >
+          {{ 'anime.allCategories' | t }}
+        </button>
+        @for (genre of availableGenres(); track genre) {
+          <button type="button" class="genre-chip" [class.active]="!previewMode() && selectedGenre() === genre" (click)="setGenre(genre)">
+            {{ formatGenreLabel(genre) }}
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-section" [class.preview-section]="previewMode()">
+    <div class="section-heading">
+      <h2>Animes</h2>
+      <div class="section-actions">
+        @if (!previewMode()) {
+          <span class="result-count" [class.has-filters]="activeFilterChips().length > 0">
+            <span class="result-count-number">{{ totalItems() }}</span>
+            résultats
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (isRankingView()) {
+      <div class="anime-ranking-list">
+        @for (anime of filteredAnimes(); track anime.slug; let index = $index) {
+          <a
+            class="ranking-row"
+            [routerLink]="['/animes', anime.slug]"
+            [style.--anime-neon-rgb]="neonRgbForAnime(anime)"
+            (mouseenter)="previewAnime(anime)"
+            (mouseleave)="clearPreviewAnime(anime)"
+            (focus)="previewAnime(anime)"
+            (blur)="clearPreviewAnime(anime)"
+          >
+            <span class="ranking-position">{{ rankingLabel(anime, index) }}</span>
+            <img class="ranking-poster" [src]="anime.imageUrl" [alt]="anime.title" loading="lazy" (load)="prepareAnimeNeonColor(anime)" />
+            <span class="ranking-main">
+              <span class="ranking-title">{{ anime.title }}</span>
+              <span class="ranking-meta">
+                {{ formatCardType(anime) }} &bull; {{ formatCardYear(anime) }} &bull; {{ formatAnimeFacts(anime) }}
+              </span>
+              @if (anime.genres.length > 0) {
+                <span class="ranking-genres">{{ formatRankingGenres(anime) }}</span>
+              }
+            </span>
+            <span class="ranking-score">
+              @if (hasCardScore(anime)) {
+                <span aria-hidden="true">&#9733;</span>
+                {{ formatCardScore(anime.score) }}
+              } @else {
+                {{ missingScoreLabel() }}
+              }
+            </span>
+          </a>
+        } @empty {
+          <div class="empty-results">
+            <h2>{{ 'anime.noResultsTitle' | t }}</h2>
+            <p>{{ 'anime.noResultsText' | t }}</p>
+          </div>
+        }
+      </div>
+    } @else {
+    <div
+      class="anime-grid"
+      [class.preview-rail]="previewMode()"
+      [class.preview-rail-active]="previewMode() && previewRailActive()"
+    >
+      @for (anime of displayedAnimes(); track anime.slug + '-' + $index; let index = $index) {
+        <div
+          class="anime-card-shell"
+          [attr.aria-hidden]="previewMode() && index >= previewDisplayLimit ? 'true' : null"
+          [style.--anime-neon-rgb]="neonRgbForAnime(anime)"
+        >
+          <span class="anime-title-bubble" aria-hidden="true">
+            <span class="anime-title-bubble-text">{{ anime.title }}</span>
+          </span>
+          <a
+            class="anime-card"
+            [routerLink]="['/animes', anime.slug]"
+            [class.selected]="selected()?.slug === anime.slug"
+            [class.completed]="isAnimeCompleted(anime)"
+            [attr.tabindex]="previewMode() && index >= previewDisplayLimit ? -1 : null"
+            (mouseenter)="previewAnime(anime)"
+            (mouseleave)="clearPreviewAnime(anime)"
+            (focus)="previewAnime(anime)"
+            (blur)="clearPreviewAnime(anime)"
+          >
+          <div class="poster-frame">
+            <img [src]="anime.imageUrl" [alt]="anime.title" loading="lazy" (load)="prepareAnimeNeonColor(anime)" />
+            @if (hasCardScore(anime)) {
+            <span class="score-badge">
+              <span aria-hidden="true">★</span>
+              {{ formatCardScore(anime.score) }}
+            </span>
+            }
+            <span class="type-badge">{{ formatCardType(anime) }}</span>
+          </div>
+          <div class="card-copy">
+            <span class="card-title" [title]="anime.title">{{ anime.title }}</span>
+            <small>{{ formatCardYear(anime) }}</small>
+          </div>
+          </a>
+        </div>
+      } @empty {
+        <div class="empty-results">
+          <h2>{{ 'anime.noResultsTitle' | t }}</h2>
+          <p>{{ 'anime.noResultsText' | t }}</p>
+        </div>
+      }
+    </div>
+    }
+
+    @if (!previewMode() && totalPages() > 1) {
+      <nav class="pagination-row" aria-label="Pagination des animes">
+        <button
+          type="button"
+          class="pagination-button icon-button"
+          [disabled]="page() <= 1"
+          aria-label="Page précédente"
+          (click)="previousPage()"
+        >
+          ‹
+        </button>
+
+        @for (item of paginationItems(); track $index) {
+          @if (item === 'ellipsis') {
+            <span class="pagination-ellipsis">...</span>
+          } @else {
+            <button
+              type="button"
+              class="pagination-button"
+              [class.active]="item === page()"
+              [attr.aria-current]="item === page() ? 'page' : null"
+              (click)="goToPage(item)"
+            >
+              {{ item }}
+            </button>
+          }
+        }
+
+        <button
+          type="button"
+          class="pagination-button icon-button"
+          [disabled]="page() >= totalPages()"
+          aria-label="Page suivante"
+          (click)="nextPage()"
+        >
+          ›
+        </button>
+      </nav>
+    }
+  </section>
+</main>

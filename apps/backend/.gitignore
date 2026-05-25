@@ -1,0 +1,18 @@
+# Build output
+/target/
+
+# Local data and runtime files
+/data/
+/logs/
+*.log
+
+# IDEs and editors
+/.idea/
+.project
+.classpath
+.settings/
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db

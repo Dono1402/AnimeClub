@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(12, 13, 11, 0.92), rgba(12, 13, 11, 0.98)),
+    url('../ressources/images/inscription.png') center top / cover fixed;
+  color: #f4ead8;
+}
+
+.notifications-page {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 28px 0 58px;
+}
+
+.notifications-hero,
+.notifications-list,
+.state {
+  border: 1px solid rgba(245, 222, 179, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(240, 179, 95, 0.08), transparent 46%),
+    rgba(14, 15, 12, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.notifications-hero {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.eyebrow,
+.notifications-hero p,
+.state,
+.empty p {
+  margin: 0;
+}
+
+.eyebrow {
+  color: #f0b35f;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #fff4e2;
+  font-family: Montserrat, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1;
+}
+
+.notifications-hero p:not(.eyebrow) {
+  color: #d7cdbb;
+  font-weight: 800;
+}
+
+.clear-all-button {
+  border: 1px solid rgba(216, 67, 67, 0.28);
+  border-radius: 8px;
+  background: rgba(7, 8, 7, 0.52);
+  color: #ffd4d4;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 0 16px;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.clear-all-button:hover,
+.clear-all-button:focus-visible {
+  border-color: rgba(216, 67, 67, 0.72);
+  background: rgba(216, 67, 67, 0.18);
+  color: #ff7474;
+  transform: translateY(-1px);
+}
+
+.notifications-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px;
+}
+
+.notification-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 40px;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-height: 86px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #f4ead8;
+  cursor: pointer;
+  padding: 12px;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.notification-row.unread {
+  background: rgba(240, 179, 95, 0.1);
+}
+
+.notification-row:hover,
+.notification-row:focus-visible {
+  border-color: rgba(240, 179, 95, 0.34);
+  background: rgba(240, 179, 95, 0.12);
+  transform: translateY(-1px);
+}
+
+.notification-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(245, 222, 179, 0.25);
+  border-radius: 50%;
+  background: #2d3927 center / cover no-repeat;
+  color: #fff4e2;
+  font-weight: 900;
+}
+
+.notification-avatar.achievement-avatar {
+  border-radius: 8px;
+  background: rgba(18, 22, 15, 0.92);
+}
+
+.notification-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.notification-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.notification-copy strong {
+  color: #fff4e2;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 1rem;
+}
+
+.notification-copy em {
+  color: #d7cdbb;
+  font-style: normal;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.notification-copy small {
+  color: #f0b35f;
+  font-weight: 900;
+}
+
+.delete-notification-button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(245, 222, 179, 0.12);
+  border-radius: 8px;
+  background: rgba(7, 8, 7, 0.42);
+  color: #d7cdbb;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.notification-row:hover .delete-notification-button,
+.notification-row:focus-within .delete-notification-button {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.delete-notification-button:hover,
+.delete-notification-button:focus-visible {
+  border-color: rgba(216, 67, 67, 0.56);
+  background: rgba(216, 67, 67, 0.18);
+  color: #ff7474;
+}
+
+.state,
+.empty {
+  color: #d7cdbb;
+  font-weight: 800;
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.empty {
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .notifications-page {
+    width: min(100% - 24px, 720px);
+  }
+
+  .notifications-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notification-row {
+    grid-template-columns: 48px minmax(0, 1fr) 36px;
+    padding: 10px;
+  }
+
+  .notification-avatar {
+    width: 46px;
+    height: 46px;
+  }
+
+  .delete-notification-button {
+    opacity: 1;
+    transform: none;
+  }
+}

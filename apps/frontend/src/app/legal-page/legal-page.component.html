@@ -1,0 +1,24 @@
+<app-menu-bar />
+
+<main class="legal-page">
+  <section class="legal-hero">
+    <p>{{ content().eyebrow }}</p>
+    <h1>{{ content().title }}</h1>
+    <span>{{ content().intro }}</span>
+  </section>
+
+  <section class="legal-content">
+    @for (section of content().sections; track section.title) {
+      <article>
+        <h2>{{ section.title }}</h2>
+        <p>{{ section.body }}</p>
+      </article>
+    }
+  </section>
+
+  <nav class="legal-links" [attr.aria-label]="legalNavLabel()">
+    @for (link of legalLinks(); track link.path) {
+      <a [routerLink]="link.path">{{ link.label }}</a>
+    }
+  </nav>
+</main>

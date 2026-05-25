@@ -1,0 +1,15 @@
+<main class="discord-callback">
+  <section class="callback-card">
+    @if (isLoading()) {
+      <p class="eyebrow">Discord</p>
+      <h1>Connexion en cours</h1>
+      <p>AnimeClub finalise ta session.</p>
+    } @else {
+      <p class="eyebrow">Discord</p>
+      <h1>Connexion impossible</h1>
+      <p class="error">{{ errorMessage() }}</p>
+      <a routerLink="/register">Retour à l'inscription</a>
+      <a routerLink="/login">Aller à la connexion</a>
+    }
+  </section>
+</main>

@@ -1,0 +1,98 @@
+<app-menu-bar />
+
+<main
+  class="achievements-page"
+  [style.--level-hue]="levelHue()"
+  [style.--level-next-hue]="levelNextHue()"
+>
+  <section class="achievement-hero">
+    <div class="anime-level-badge level-badge-large" aria-hidden="true">
+      <img class="rank-icon" [src]="summary().rankImageUrl" alt="" />
+      <span class="level-label">Niv.</span>
+      <strong>{{ summary().level }}</strong>
+    </div>
+
+    <div class="hero-copy">
+      <p class="eyebrow">Progression anime</p>
+      <h1>{{ pageTitle() }}</h1>
+      <p>
+        {{ summary().totalXp | number: '1.0-0' }} XP
+        &middot; {{ summary().levelTitle }}
+        &middot; {{ summary().levelTier }}
+      </p>
+
+      <div class="xp-track" aria-label="Progression XP du niveau">
+        <span [style.width.%]="summary().progressPercent"></span>
+      </div>
+      <small>{{ progressLabel() }}</small>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <strong>{{ unlockedCount() }}</strong>
+        <span>Badges</span>
+      </div>
+      <div>
+        <strong>{{ achievementPercent() }}%</strong>
+        <span>Completion</span>
+      </div>
+      <div>
+        <strong>{{ summary().episodesWatched }}</strong>
+        <span>Épisodes</span>
+      </div>
+      <div>
+        <strong>{{ summary().moviesWatched }}</strong>
+        <span>Films</span>
+      </div>
+    </div>
+  </section>
+
+  @if (feedback()) {
+    <p class="state">{{ feedback() }}</p>
+  } @else if (loading()) {
+    <p class="state">Chargement des badges...</p>
+  } @else {
+    @for (group of groups(); track group.category) {
+      <section class="achievement-group">
+        <div class="section-heading">
+          <h2>{{ group.title }}</h2>
+          <span>{{ group.unlockedCount }}/{{ group.achievements.length }}</span>
+        </div>
+
+        <div class="achievement-grid">
+          @for (achievement of group.achievements; track achievement.id) {
+            <article class="achievement-card" [class.locked]="!achievement.unlocked">
+              <div class="achievement-icon" [class.has-rank-image]="achievement.iconUrl">
+                @if (achievement.iconUrl) {
+                  <img [src]="achievement.iconUrl" [alt]="achievement.title" />
+                } @else {
+                  <span>{{ achievement.icon }}</span>
+                }
+              </div>
+              <div class="achievement-copy">
+                <div>
+                  <h3>{{ achievement.title }}</h3>
+                  <p>{{ achievement.description }}</p>
+                </div>
+                <div class="achievement-progress">
+                  <span [style.width.%]="achievement.percent"></span>
+                </div>
+                <small>
+                  {{ achievement.current }}/{{ achievement.target }}
+                  @if (achievement.unlocked) {
+                    &middot; Debloque
+                  }
+                </small>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  <div class="page-actions">
+    <a mat-stroked-button [routerLink]="backRoute()">Retour profil</a>
+    <a mat-raised-button [routerLink]="libraryRoute()">Animethèque</a>
+  </div>
+</main>

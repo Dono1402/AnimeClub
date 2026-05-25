@@ -1,0 +1,97 @@
+<div class="profile-avatar-editor">
+  <input
+    #avatarInput
+    class="avatar-file-input"
+    type="file"
+    accept="image/png,image/jpeg,image/webp,image/gif"
+    (change)="selectProfilePicture($event)"
+  />
+
+  <button
+    class="avatar-button"
+    type="button"
+    [disabled]="saving()"
+    [attr.aria-label]="('profile.change' | t) + ' ' + ('profile.picture' | t)"
+    (click)="openAvatarActions(avatarInput, $event)"
+  >
+    @if (profilePictureUrl(); as avatarUrl) {
+      <img [src]="avatarUrl" [alt]="displayNameValue()" />
+    } @else {
+      <span class="avatar-initials">{{ initialsValue() }}</span>
+    }
+    <small>{{ saving() ? ('profile.saving' | t) : ('profile.change' | t) }}</small>
+  </button>
+
+  @if (actionsOpen()) {
+    <div class="avatar-action-panel" [attr.aria-label]="'profile.avatarActions' | t">
+      <button class="avatar-action primary-action" type="button" (click)="changeAvatar(avatarInput)">
+        <span aria-hidden="true">+</span>
+        {{ 'profile.changeAvatar' | t }}
+      </button>
+      <button class="avatar-action danger-action" type="button" (click)="deleteProfilePicture()">
+        <span aria-hidden="true">x</span>
+        {{ 'profile.deleteAvatar' | t }}
+      </button>
+    </div>
+  }
+
+  @if (feedback()) {
+    <p class="avatar-feedback">{{ feedback() }}</p>
+  }
+</div>
+
+@if (cropState(); as crop) {
+  <div class="avatar-crop-backdrop" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title">
+    <section class="avatar-crop-panel">
+      <div class="crop-heading">
+        <p>{{ 'profile.picture' | t }}</p>
+        <h2 id="avatar-crop-title">{{ 'profile.cropPicture' | t }}</h2>
+      </div>
+
+      <div class="crop-layout">
+        <div
+          class="crop-frame"
+          [style.aspect-ratio]="crop.sourceAspectRatio + ' / 1'"
+          (pointerdown)="startCropDrag($event)"
+          (pointermove)="moveCropDrag($event)"
+          (pointerup)="endCropDrag($event)"
+          (pointercancel)="endCropDrag($event)"
+          (wheel)="zoomCropWithWheel($event)"
+        >
+          <img [src]="crop.sourceUrl" alt="" />
+          <div
+            class="crop-selection"
+            [style.width.%]="cropSelectionWidth(crop)"
+            [style.height.%]="cropSelectionHeight(crop)"
+            [style.left.%]="cropSelectionLeft(crop)"
+            [style.top.%]="cropSelectionTop(crop)"
+          ></div>
+        </div>
+
+        <div class="crop-controls">
+          <p>{{ 'profile.cropDirectHint' | t }}</p>
+
+          <div class="zoom-actions" [attr.aria-label]="'profile.cropZoom' | t">
+            <button mat-stroked-button type="button" [attr.aria-label]="'profile.cropZoomOut' | t" (click)="zoomCrop(-0.1)">
+              -
+            </button>
+            <span>{{ crop.zoom | number: '1.0-2' }}x</span>
+            <button mat-stroked-button type="button" [attr.aria-label]="'profile.cropZoomIn' | t" (click)="zoomCrop(0.1)">
+              +
+            </button>
+            <button mat-stroked-button type="button" (click)="resetCrop()">
+              {{ 'profile.cropReset' | t }}
+            </button>
+          </div>
+
+          <div class="crop-actions">
+            <button mat-stroked-button type="button" (click)="cancelCrop()">{{ 'common.cancel' | t }}</button>
+            <button mat-raised-button type="button" [disabled]="saving()" (click)="applyCrop()">
+              {{ saving() ? ('profile.saving' | t) : ('profile.cropApply' | t) }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+}

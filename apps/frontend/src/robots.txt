@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Disallow: /messages
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /confirm-email
+Disallow: /change-validation-email
+Disallow: /register/discord
+Disallow: /auth/discord/callback
+Disallow: /anime-library
+Disallow: /animetheque
+Disallow: /manga-library
+Disallow: /mangatheque
+Disallow: /following
+Disallow: /suivis
+Disallow: /parametres-compte
+Disallow: /notifications
+Disallow: /achievements
+Disallow: /badges
+Disallow: /success
+Disallow: /succes
+
+Sitemap: https://animeclub.fr/sitemap.xml

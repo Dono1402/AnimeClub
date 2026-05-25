@@ -1,0 +1,48 @@
+<app-menu-bar />
+
+<main class="public-social-page">
+  <section class="page-head">
+    <div>
+      <p class="eyebrow">Social</p>
+      <h1>{{ title() }}</h1>
+      <p>{{ countLabel() }}</p>
+    </div>
+    @if (owner(); as currentProfile) {
+      <a mat-stroked-button [routerLink]="['/profile', currentProfile.pseudo]">Retour profil</a>
+    }
+  </section>
+
+  @if (loading()) {
+    <section class="state">Chargement...</section>
+  } @else if (errorMessage()) {
+    <section class="state">{{ errorMessage() }}</section>
+  } @else if (owner(); as currentProfile) {
+    <section class="profile-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Listes</p>
+          <h2>{{ countLabel() }}</h2>
+        </div>
+      </div>
+
+      <div class="profile-grid-list">
+        @for (profile of profiles(); track profile.id) {
+          <a class="profile-chip-card" [routerLink]="['/profile', profile.pseudo]">
+            <span class="profile-avatar">
+              @if (profilePicture(profile); as pictureUrl) {
+                <img [src]="pictureUrl" [alt]="profile.displayName" loading="lazy" />
+              } @else {
+                <i>{{ initials(profile) }}</i>
+              }
+              <span class="presence-dot" [class.online]="profile.online" aria-hidden="true"></span>
+            </span>
+            <strong>{{ profile.displayName || profile.pseudo }}</strong>
+            <small>@{{ profile.pseudo }}</small>
+          </a>
+        } @empty {
+          <p class="empty">{{ emptyMessage() }}</p>
+        }
+      </div>
+    </section>
+  }
+</main>

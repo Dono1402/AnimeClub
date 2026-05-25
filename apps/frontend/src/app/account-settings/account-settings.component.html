@@ -1,0 +1,168 @@
+<app-menu-bar />
+
+<main class="settings-page">
+  @if (account(); as currentAccount) {
+    <app-profile-editor />
+
+    <form
+      class="settings-card pseudo-card"
+      [class.required]="currentAccount.usernameChangeRequired"
+      [formGroup]="pseudoForm"
+      (ngSubmit)="updatePseudo()"
+    >
+      <div class="section-title">
+        <p class="eyebrow">Identifiant</p>
+        <h2>Changer mon pseudo</h2>
+        @if (currentAccount.usernameChangeRequired) {
+          <p>
+            Ton ancien pseudo dépassait 16 caractères. Un pseudo temporaire t'a été attribué :
+            <strong>{{ currentAccount.pseudo }}</strong>. Choisis un nouveau pseudo pour finaliser ton compte.
+          </p>
+        } @else {
+          <p>Pseudo actuel : <strong>{{ currentAccount.pseudo }}</strong>. Maximum 16 caractères.</p>
+        }
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nouveau pseudo</mat-label>
+        <input matInput type="text" maxlength="16" formControlName="pseudo" autocomplete="username" />
+        @if (pseudoForm.controls.pseudo.hasError('required') && pseudoForm.controls.pseudo.touched) {
+          <mat-error>Le pseudo est requis.</mat-error>
+        }
+        @if (pseudoForm.controls.pseudo.hasError('maxlength') && pseudoForm.controls.pseudo.touched) {
+          <mat-error>Le pseudo doit faire 16 caractères maximum.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (pseudoFeedback()) {
+        <p class="success">{{ pseudoFeedback() }}</p>
+      }
+      @if (pseudoError()) {
+        <p class="error">{{ pseudoError() }}</p>
+      }
+
+      <button mat-raised-button type="submit" [disabled]="pseudoSaving() || pseudoForm.invalid">
+        {{ pseudoSaving() ? 'Sauvegarde...' : 'Sauvegarder le pseudo' }}
+      </button>
+    </form>
+
+    <form class="settings-card privacy-card" [formGroup]="privacyForm" (ngSubmit)="updatePrivacy()">
+      <div class="section-title">
+        <p class="eyebrow">Confidentialité</p>
+        <h2>Visibilité du profil</h2>
+        <p>
+          Choisis les options sociales de ta page publique. Ton Animethèque et ta Mangathèque sont toujours publiques.
+        </p>
+      </div>
+
+      <div class="privacy-options">
+        <label class="privacy-toggle">
+          <input type="checkbox" formControlName="showFollowers" />
+          <span aria-hidden="true"></span>
+          <strong>Afficher mes abonnés</strong>
+          <small>Masque le compteur d'abonnés sur ton profil public.</small>
+        </label>
+
+        <label class="privacy-toggle">
+          <input type="checkbox" formControlName="showOnlineDiscovery" />
+          <span aria-hidden="true"></span>
+          <strong>Apparaître dans les profils en ligne</strong>
+          <small>Ton profil peut être proposé quand tu es connecté.</small>
+        </label>
+      </div>
+
+      @if (privacyFeedback()) {
+        <p class="success">{{ privacyFeedback() }}</p>
+      }
+      @if (privacyError()) {
+        <p class="error">{{ privacyError() }}</p>
+      }
+
+      <button mat-raised-button type="submit" [disabled]="privacySaving()">
+        {{ privacySaving() ? 'Sauvegarde...' : 'Sauvegarder la confidentialité' }}
+      </button>
+    </form>
+
+    <section class="settings-grid">
+      <form class="settings-card" [formGroup]="emailForm" (ngSubmit)="updateEmail()">
+        <div class="section-title">
+          <p class="eyebrow">{{ 'settings.emailEyebrow' | t }}</p>
+          <h2>{{ 'settings.emailTitle' | t }}</h2>
+          <p>{{ 'settings.currentEmail' | t }} <strong>{{ currentAccount.mail }}</strong></p>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'settings.newEmail' | t }}</mat-label>
+          <input matInput type="email" formControlName="mail" autocomplete="email" />
+          @if (emailForm.controls.mail.hasError('email')) {
+            <mat-error>{{ 'auth.mailInvalid' | t }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'settings.currentPassword' | t }}</mat-label>
+          <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+        </mat-form-field>
+
+        @if (emailFeedback()) {
+          <p class="success">{{ emailFeedback() }}</p>
+        }
+        @if (emailError()) {
+          <p class="error">{{ emailError() }}</p>
+        }
+
+        <button mat-raised-button type="submit" [disabled]="emailSaving() || emailForm.invalid">
+          {{ emailSaving() ? ('settings.saving' | t) : ('settings.saveEmail' | t) }}
+        </button>
+      </form>
+
+      <form class="settings-card" [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+        <div class="section-title">
+          <p class="eyebrow">{{ 'settings.passwordEyebrow' | t }}</p>
+          <h2>{{ 'settings.passwordTitle' | t }}</h2>
+          <p>{{ 'settings.passwordDescription' | t }}</p>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'settings.currentPassword' | t }}</mat-label>
+          <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'settings.newPassword' | t }}</mat-label>
+          <input matInput type="password" formControlName="newPassword" autocomplete="new-password" />
+          @if (passwordForm.controls.newPassword.hasError('minlength')) {
+            <mat-error>{{ 'auth.passwordLength' | t }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'settings.confirmPassword' | t }}</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        </mat-form-field>
+
+        @if (passwordForm.hasError('passwordMismatch') && passwordForm.controls.confirmPassword.touched) {
+          <p class="error">{{ 'settings.passwordMismatch' | t }}</p>
+        }
+        @if (passwordFeedback()) {
+          <p class="success">{{ passwordFeedback() }}</p>
+        }
+        @if (passwordError()) {
+          <p class="error">{{ passwordError() }}</p>
+        }
+
+        <button mat-raised-button type="submit" [disabled]="passwordSaving() || passwordForm.invalid">
+          {{ passwordSaving() ? ('settings.saving' | t) : ('settings.savePassword' | t) }}
+        </button>
+      </form>
+    </section>
+  } @else {
+    <section class="state">{{ 'auth.loginError' | t }}</section>
+  }
+
+  @if (toastMessage()) {
+    <div class="settings-toast" role="status" aria-live="polite">
+      {{ toastMessage() }}
+    </div>
+  }
+</main>

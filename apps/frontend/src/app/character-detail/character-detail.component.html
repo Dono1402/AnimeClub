@@ -1,0 +1,86 @@
+<app-menu-bar />
+
+@if (character(); as currentCharacter) {
+  <main class="character-detail">
+    <div class="backdrop" [style.background-image]="backgroundStyle(currentCharacter)"></div>
+
+    <section class="hero">
+      <div class="portrait">
+        @if (imageFor(currentCharacter)) {
+          <img [src]="imageFor(currentCharacter)" [alt]="currentCharacter.name" />
+        } @else {
+          <span>{{ currentCharacter.name.slice(0, 1).toUpperCase() }}</span>
+        }
+      </div>
+
+      <div class="copy">
+        <p class="eyebrow">Personnage MAL</p>
+        <h1>{{ currentCharacter.name }}</h1>
+        @if (currentCharacter.nameKanji) {
+          <span class="japanese-name">{{ currentCharacter.nameKanji }}</span>
+        }
+
+        <div class="stats-line">
+          <span>{{ favoritesFor(currentCharacter) }}</span>
+          <span>MAL #{{ currentCharacter.malId }}</span>
+          @if (sourceFor(currentCharacter); as source) {
+            <span>{{ source }}</span>
+          }
+        </div>
+
+        <p class="description">{{ descriptionFor(currentCharacter) }}</p>
+
+        @if (currentCharacter.sourceAnimeTitle) {
+          @if (currentCharacter.sourceAnimeSlug) {
+            <a class="source-anime-card" [routerLink]="['/animes', currentCharacter.sourceAnimeSlug]">
+              @if (currentCharacter.sourceAnimeImageUrl) {
+                <img [src]="currentCharacter.sourceAnimeImageUrl" [alt]="currentCharacter.sourceAnimeTitle" loading="lazy" />
+              }
+              <span>
+                <small>Anime rattache</small>
+                <strong>{{ currentCharacter.sourceAnimeTitle }}</strong>
+                @if (currentCharacter.role) {
+                  <em>{{ currentCharacter.role }}</em>
+                }
+              </span>
+            </a>
+          } @else {
+            <div class="source-anime-card">
+              @if (currentCharacter.sourceAnimeImageUrl) {
+                <img [src]="currentCharacter.sourceAnimeImageUrl" [alt]="currentCharacter.sourceAnimeTitle" loading="lazy" />
+              }
+              <span>
+                <small>Anime rattache</small>
+                <strong>{{ currentCharacter.sourceAnimeTitle }}</strong>
+                @if (currentCharacter.role) {
+                  <em>{{ currentCharacter.role }}</em>
+                }
+              </span>
+            </div>
+          }
+        }
+
+        @if (currentCharacter.nicknames.length > 0) {
+          <div class="tags">
+            @for (nickname of currentCharacter.nicknames; track nickname) {
+              <span>{{ nickname }}</span>
+            }
+          </div>
+        }
+
+        <div class="actions">
+          <a mat-raised-button routerLink="/characters">Retour personnages</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+} @else {
+  <main class="character-detail">
+    <section class="missing">
+      <h1>Personnage introuvable</h1>
+      <p>Ce personnage n'existe pas dans le catalogue importé.</p>
+      <a mat-raised-button routerLink="/characters">Retour personnages</a>
+    </section>
+  </main>
+}

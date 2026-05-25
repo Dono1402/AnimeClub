@@ -1,0 +1,68 @@
+<form [formGroup]="form" (ngSubmit)="changeEmail()">
+  <div class="auth-page">
+    <app-menu-bar class="menu-bar" />
+
+    <main class="container-form">
+      <mat-card>
+        <div class="grid">
+          <label>Changer l'adresse de validation</label>
+          <p class="hint">
+            Si tu t'es trompé d'e-mail à l'inscription, indique ton pseudo ou ton ancien e-mail,
+            ton mot de passe, puis la bonne adresse. Un nouveau lien de confirmation sera envoyé.
+          </p>
+
+          <mat-form-field class="custom-width">
+            <mat-label>Pseudo ou e-mail actuel</mat-label>
+            <input type="text" matInput formControlName="identifier" autocomplete="username" required />
+            @if (form.controls.identifier.hasError('required') && form.controls.identifier.touched) {
+              <mat-error>Le pseudo ou l'e-mail actuel est requis.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="custom-width">
+            <mat-label>Mot de passe</mat-label>
+            <input type="password" matInput formControlName="password" autocomplete="current-password" required />
+            @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+              <mat-error>Le mot de passe est requis.</mat-error>
+            }
+            @if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+              <mat-error>Le mot de passe doit contenir au moins 8 caractères.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="custom-width">
+            <mat-label>Nouvelle adresse e-mail</mat-label>
+            <input type="email" matInput formControlName="mail" autocomplete="email" required />
+            @if (form.controls.mail.hasError('required') && form.controls.mail.touched) {
+              <mat-error>La nouvelle adresse e-mail est requise.</mat-error>
+            }
+            @if (form.controls.mail.hasError('email') && form.controls.mail.touched) {
+              <mat-error>Entre une adresse e-mail valide.</mat-error>
+            }
+          </mat-form-field>
+
+          @if (successMessage()) {
+            <p class="form-success">{{ successMessage() }}</p>
+          }
+
+          @if (confirmationLink()) {
+            <div class="local-link">
+              <p>Mode local : lien de confirmation disponible.</p>
+              <a [href]="confirmationLink()">Confirmer mon e-mail</a>
+            </div>
+          }
+
+          @if (errorMessage()) {
+            <p class="form-error">{{ errorMessage() }}</p>
+          }
+
+          <button mat-stroked-button class="custom-button" type="submit" [disabled]="form.invalid || isSubmitting()">
+            {{ isSubmitting() ? 'Envoi en cours...' : "Changer l'adresse de validation" }}
+          </button>
+
+          <a class="back-link" routerLink="/login">Retour à la connexion</a>
+        </div>
+      </mat-card>
+    </main>
+  </div>
+</form>

@@ -1,0 +1,186 @@
+<app-menu-bar />
+
+<main class="catalog-page">
+  <section class="hero" [style.--hero-accent]="selected().accent">
+    <div class="hero-copy">
+      <p class="eyebrow">Catalogue communautaire</p>
+      <h1>AnimeClub</h1>
+      <p>
+        Explore les sorties, filtre par ambiance, ouvre une fiche, puis ajoute les animes à ton suivi personnel.
+      </p>
+      <div class="hero-actions">
+        <button mat-raised-button type="button" (click)="selectKind('anime')">Voir les animes</button>
+        <a mat-stroked-button routerLink="/anime-library">Mon Animethèque</a>
+      </div>
+    </div>
+
+    <div class="hero-feature">
+      <img [src]="selected().imageUrl" [alt]="selected().title" />
+      <div>
+        <span>{{ kindLabels[selected().kind] }}</span>
+        <strong>{{ selected().title }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <aside class="filters" aria-label="Filtres du catalogue">
+      <mat-form-field appearance="outline">
+        <mat-label>Rechercher</mat-label>
+        <input matInput type="search" [value]="query()" (input)="setQuery($event)" />
+      </mat-form-field>
+
+      <div class="button-group" aria-label="Types de contenu">
+        @for (filter of kindFilters; track filter.value) {
+          <button
+            type="button"
+            [class.active]="kind() === filter.value"
+            (click)="selectKind(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        }
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Ambiance</mat-label>
+        <mat-select [value]="mood()" (valueChange)="selectMood($event)">
+          @for (itemMood of moods; track itemMood) {
+            <mat-option [value]="itemMood">{{ itemMood }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div class="ranking">
+        <h2>Top animes</h2>
+        @for (item of topItems(); track item.slug; let index = $index) {
+          <button type="button" (click)="selectItem(item)">
+            <span>{{ index + 1 }}</span>
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.communityScore }}/10</small>
+          </button>
+        }
+      </div>
+    </aside>
+
+    <section class="results" aria-label="Resultats du catalogue">
+      <div class="section-head">
+        <div>
+          <p>{{ filteredItems().length }} résultats</p>
+          <h2>Fiches à découvrir</h2>
+        </div>
+      </div>
+
+      <div class="grid">
+        @for (item of filteredItems(); track item.slug) {
+          <article
+            class="catalog-card"
+            [class.is-selected]="selected().slug === item.slug"
+            [style.--card-accent]="item.accent"
+            (click)="selectItem(item)"
+          >
+            <img [src]="item.imageUrl" [alt]="item.title" loading="lazy" />
+            <div class="card-body">
+              <div class="meta-line">
+                <span>{{ kindLabels[item.kind] }}</span>
+                <span>{{ item.communityScore }}/10</span>
+              </div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.genres.join(' / ') }}</p>
+              <small>{{ item.format }} · {{ item.season }}</small>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">Aucun résultat pour ces filtres.</p>
+        }
+      </div>
+    </section>
+
+    <aside class="details" [style.--detail-accent]="selected().accent">
+      <img [src]="selected().imageUrl" [alt]="selected().title" />
+      <div class="details-body">
+        <p class="eyebrow">{{ kindLabels[selected().kind] }} · {{ selected().format }}</p>
+        <h2>{{ selected().title }}</h2>
+        <span class="original-title">{{ selected().originalTitle }}</span>
+        <p>{{ selected().synopsis }}</p>
+
+        <dl>
+          <div>
+            <dt>Studio</dt>
+            <dd>{{ selected().studio }}</dd>
+          </div>
+          <div>
+            <dt>Saison</dt>
+            <dd>{{ selected().season }}</dd>
+          </div>
+          <div>
+            <dt>Episodes</dt>
+            <dd>{{ selected().episodes }}</dd>
+          </div>
+          <div>
+            <dt>Note</dt>
+            <dd>{{ selected().communityScore }}/10</dd>
+          </div>
+        </dl>
+
+        @if (selected().kind === 'anime') {
+          @if (account$ | async; as account) {
+            <form class="library-form" [formGroup]="libraryForm" (ngSubmit)="addToAnimetheque(account.id)">
+              <mat-form-field appearance="outline">
+                <mat-label>Statut</mat-label>
+                <mat-select formControlName="status" (selectionChange)="completeSelectionIfNeeded($event.value)">
+                  <mat-option value="PLANNED">À voir</mat-option>
+                  <mat-option value="WATCHING">En cours</mat-option>
+                  <mat-option value="COMPLETED">Terminé</mat-option>
+                  <mat-option value="PAUSED">En pause</mat-option>
+                  <mat-option value="DROPPED">Abandonné</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Episodes vus</mat-label>
+                  @if (isCompletedSelected()) {
+                    <input matInput type="text" [value]="selectedCompletionLabel()" disabled />
+                  } @else {
+                    <input matInput type="number" min="0" [max]="selected().episodes" formControlName="watchedEpisodes" />
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Note /10</mat-label>
+                  <input matInput type="number" min="0" max="10" formControlName="score" />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Note personnelle</mat-label>
+                <textarea matInput rows="3" formControlName="notes"></textarea>
+              </mat-form-field>
+
+              <label class="favorite-toggle">
+                <input type="checkbox" formControlName="favorite" />
+                Favori
+              </label>
+
+              <button mat-raised-button type="submit" [disabled]="saving()">
+                {{ saving() ? 'Ajout...' : 'Ajouter à mon Animethèque' }}
+              </button>
+
+              @if (feedback()) {
+                <p class="feedback">{{ feedback() }}</p>
+              }
+            </form>
+          } @else {
+            <div class="login-callout">
+              <strong>Animethèque réservée aux comptes connectés.</strong>
+              <a mat-stroked-button routerLink="/login">Se connecter</a>
+            </div>
+          }
+        } @else {
+          <p class="hint">La liste personnelle gère uniquement les animes pour l'instant.</p>
+        }
+      </div>
+    </aside>
+  </section>
+</main>

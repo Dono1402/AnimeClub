@@ -1,0 +1,445 @@
+<app-menu-bar />
+
+<main class="profile-dashboard-page" [style.--profile-accent]="accentColor()">
+  <input
+    #profilePictureInput
+    class="visually-hidden-file"
+    type="file"
+    tabindex="-1"
+    aria-hidden="true"
+    accept="image/png,image/jpeg,image/webp,image/gif"
+    (change)="selectProfilePicture($event)"
+  />
+  <input
+    #backgroundInput
+    class="visually-hidden-file"
+    type="file"
+    tabindex="-1"
+    aria-hidden="true"
+    accept="image/png,image/jpeg,image/webp,image/gif"
+    (change)="selectBackground($event)"
+  />
+
+  @if (loading()) {
+    <section class="state">Chargement du profil...</section>
+  } @else if (profile(); as currentProfile) {
+    <header class="page-title">
+      <h1>{{ isOwnProfile() ? 'Mon Profil' : displayName() }}</h1>
+      <span>Profil public <i aria-hidden="true"></i></span>
+    </header>
+
+    <section class="profile-hero" [style.background-image]="bannerStyle()">
+      @if (isOwnProfile()) {
+        <button
+          class="background-upload-zone"
+          type="button"
+          aria-label="Modifier la bannière"
+          title="Modifier la bannière"
+          (click)="openMediaActions('background', backgroundInput, $event)"
+        ></button>
+      }
+
+      <div class="hero-main">
+        @if (isOwnProfile()) {
+          <button
+            class="profile-avatar owner-avatar"
+            type="button"
+            aria-label="Modifier la photo de profil"
+            title="Modifier la photo de profil"
+            (click)="openMediaActions('profilePicture', profilePictureInput, $event)"
+          >
+            @if (profilePictureUrl(); as pictureUrl) {
+              <img [src]="pictureUrl" [alt]="displayName()" />
+            } @else {
+              <span>{{ initials() }}</span>
+            }
+            <small>Changer</small>
+            <i [class.online]="currentProfile.online" aria-hidden="true"></i>
+          </button>
+        } @else {
+          <a class="profile-avatar" [routerLink]="publicProfileRoute(currentProfile)">
+            @if (profilePictureUrl(); as pictureUrl) {
+              <img [src]="pictureUrl" [alt]="displayName()" />
+            } @else {
+              <span>{{ initials() }}</span>
+            }
+            <i [class.online]="currentProfile.online" aria-hidden="true"></i>
+          </a>
+        }
+
+        <div class="profile-copy">
+          <div class="name-line">
+            <h2>{{ displayName() }}</h2>
+            <span aria-hidden="true">✦</span>
+          </div>
+          <p class="handle">@{{ currentProfile.pseudo }}</p>
+          <p class="bio">{{ currentProfile.bio || currentProfile.profileStatus || 'Aucune bio pour le moment.' }}</p>
+
+          <div class="profile-meta">
+            @if (followersVisible()) {
+              <a [routerLink]="['/profile', currentProfile.pseudo, 'followers']">
+                {{ followersCount() }} abonné{{ followersCount() > 1 ? 's' : '' }}
+              </a>
+            } @else {
+              <span>Abonnés masqués</span>
+            }
+          </div>
+
+          <div class="hero-actions">
+            @if (isOwnProfile()) {
+              <a class="primary-action" routerLink="/account">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m4 20 4.8-1.2L19 8.6 15.4 5 5.2 15.2 4 20Z" />
+                  <path d="m13.8 6.6 3.6 3.6" />
+                </svg>
+                Modifier le profil
+              </a>
+              <button type="button" class="ghost-action" (click)="shareProfile()">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M16 5h3v14H5V5h3" />
+                  <path d="M12 3v11m0-11 4 4m-4-4L8 7" />
+                </svg>
+                Partager
+              </button>
+              <a class="ghost-action" routerLink="/following">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                  <path d="M2 21a6 6 0 0 1 12 0" />
+                  <path d="M17 8h4m-2-2v4" />
+                </svg>
+                Voir mes suivis
+              </a>
+            } @else {
+              @if (canFollow()) {
+                <button
+                  type="button"
+                  class="primary-action"
+                  [class.unfollow]="followState()?.following"
+                  [disabled]="followSaving()"
+                  (click)="toggleFollow()"
+                >
+                  @if (followSaving()) {
+                    Patiente...
+                  } @else if (followState()?.following) {
+                    Ne plus suivre
+                  } @else {
+                    Suivre
+                  }
+                </button>
+              } @else {
+                <a class="primary-action" routerLink="/login">Se connecter</a>
+              }
+              @if (canMessage()) {
+                <a class="ghost-action" routerLink="/messages" [queryParams]="{ friend: currentProfile.id }">Message</a>
+              }
+              <button type="button" class="ghost-action" (click)="shareProfile()">Partager</button>
+            }
+          </div>
+
+          @if (followFeedback() || shareFeedback()) {
+            <p class="action-feedback">{{ followFeedback() || shareFeedback() }}</p>
+          }
+        </div>
+      </div>
+
+      <aside
+        class="level-panel"
+        [style.--level-hue]="animeLevelHue()"
+        [style.--level-next-hue]="animeLevelNextHue()"
+      >
+        <div class="level-header">
+          <img [src]="animeSummary().rankImageUrl" alt="" />
+          <span>
+            <small>Niveau</small>
+            <strong>{{ animeSummary().levelTitle }}</strong>
+            <em>{{ formatNumber(animeSummary().totalXp) }} XP · Rang {{ animeSummary().rankIndex + 1 }}/50</em>
+          </span>
+        </div>
+        <div class="level-track"><i [style.width.%]="animeSummary().progressPercent"></i></div>
+        <p>{{ animeLevelProgressLabel() }}</p>
+      </aside>
+
+      <div class="hero-stats">
+        <article class="anime-stat">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14v10H5z" /><path d="m8 4 4 3 4-3" /></svg>
+          <strong>{{ animeTotal() }}</strong>
+          <small>Animes suivis</small>
+        </article>
+        <article class="manga-stat">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 0-4-4V4Z" /><path d="M5 16V4" /></svg>
+          <strong>{{ mangaTotal() }}</strong>
+          <small>Mangas suivis</small>
+        </article>
+        <article class="episode-stat">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16v10H4z" /><path d="m10 10 4 2-4 2v-4Z" /></svg>
+          <strong>{{ formatNumber(animeWatchedEpisodes()) }}</strong>
+          <small>Épisodes vus</small>
+        </article>
+        <article class="volume-stat">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4h12v16H6z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>
+          <strong>{{ formatNumber(mangaReadVolumes()) }}</strong>
+          <small>Tomes lus</small>
+        </article>
+      </div>
+
+      @if (isOwnProfile()) {
+        <span class="background-edit">Changer la bannière</span>
+      }
+    </section>
+
+    @if (isOwnProfile() && mediaActionTarget(); as mediaTarget) {
+      <section
+        class="media-panel"
+        [style.left.px]="mediaPanelPosition().left"
+        [style.top.px]="mediaPanelPosition().top"
+        [attr.aria-label]="mediaTarget === 'profilePicture' ? 'Actions photo de profil' : 'Actions bannière'"
+      >
+        <div class="media-choice-actions">
+          <button
+            class="media-action primary-media-action"
+            type="button"
+            (click)="changeSelectedMedia(mediaTarget === 'profilePicture' ? profilePictureInput : backgroundInput)"
+          >
+            <span aria-hidden="true">+</span>
+            {{ mediaTarget === 'profilePicture' ? 'Changer la photo' : 'Changer la bannière' }}
+          </button>
+          <button class="media-action danger-media-action" type="button" (click)="deleteSelectedMedia()">
+            <span aria-hidden="true">×</span>
+            {{ mediaTarget === 'profilePicture' ? 'Supprimer la photo' : 'Supprimer la bannière' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (mediaFeedback()) {
+      <p class="media-feedback">{{ mediaFeedback() }}</p>
+    }
+
+    @if (cropState(); as crop) {
+      <div class="crop-backdrop" role="dialog" aria-modal="true" aria-labelledby="profile-crop-title">
+        <section class="crop-panel">
+          <div class="crop-title">
+            <p>{{ crop.target === 'profilePicture' ? 'Photo de profil' : 'Bannière' }}</p>
+            <h2 id="profile-crop-title">
+              {{ crop.target === 'profilePicture' ? 'Recadrer la photo' : 'Recadrer la bannière' }}
+            </h2>
+          </div>
+
+          <div class="crop-layout">
+            <div
+              class="crop-frame"
+              [style.aspect-ratio]="crop.sourceAspectRatio + ' / 1'"
+              (pointerdown)="startCropDrag($event)"
+              (pointermove)="moveCropDrag($event)"
+              (pointerup)="endCropDrag($event)"
+              (pointercancel)="endCropDrag($event)"
+              (wheel)="zoomCropWithWheel($event)"
+            >
+              <img [src]="crop.sourceUrl" alt="" />
+              <div
+                class="crop-selection"
+                [class.crop-selection-avatar]="crop.target === 'profilePicture'"
+                [style.width.%]="cropSelectionWidth(crop)"
+                [style.height.%]="cropSelectionHeight(crop)"
+                [style.left.%]="cropSelectionLeft(crop)"
+                [style.top.%]="cropSelectionTop(crop)"
+              ></div>
+            </div>
+
+            <div class="crop-controls">
+              <p>Déplace l’image directement dans le cadre. Utilise le zoom si nécessaire.</p>
+
+              <div class="zoom-actions" aria-label="Zoom du recadrage">
+                <button type="button" aria-label="Dézoomer" (click)="zoomCrop(-0.1)">-</button>
+                <span>{{ crop.zoom.toFixed(2) }}x</span>
+                <button type="button" aria-label="Zoomer" (click)="zoomCrop(0.1)">+</button>
+                <button type="button" (click)="resetCrop()">Réinitialiser</button>
+              </div>
+
+              <div class="crop-actions">
+                <button type="button" (click)="cancelCrop()">Annuler</button>
+                <button type="button" class="crop-apply" [disabled]="mediaSaving()" (click)="applyCrop()">
+                  {{ mediaSaving() ? 'Enregistrement...' : 'Appliquer' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    }
+
+    <section class="dashboard-columns">
+      <div class="dashboard-column">
+        <article class="dashboard-card library-card anime-card">
+          <header>
+            <h2>
+              <span class="card-icon anime-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 7h14v10H5z" /><path d="m8 4 4 3 4-3" /></svg>
+              </span>
+              Animethèque
+            </h2>
+            <a [routerLink]="animeLibraryRoute(currentProfile)">Voir tout</a>
+          </header>
+          <div class="library-numbers">
+            <span><strong>{{ animeTotal() }}</strong><small>Total animes</small></span>
+            <span><strong>{{ animeWatching() }}</strong><small>En cours</small></span>
+            <span><strong>{{ animeCompleted() }}</strong><small>Terminés</small></span>
+            <span><strong>{{ animeFavorites() }}</strong><small>Favoris</small></span>
+          </div>
+          <div class="wide-track"><i [style.width.%]="episodeProgressPercent()"></i></div>
+          <p>Épisodes vus <span>{{ formatNumber(animeWatchedEpisodes()) }} / {{ formatNumber(animeTotalEpisodes()) }}</span></p>
+        </article>
+
+        <article class="dashboard-card activity-card">
+          <header>
+            <h2><span class="card-icon">▰</span> Dernière activité</h2>
+            <a [routerLink]="isOwnProfile() ? '/following' : publicProfileRoute(currentProfile)">Voir toute l'activité</a>
+          </header>
+          <div class="activity-list">
+            @for (item of activityItems(); track item.id) {
+              <a [routerLink]="item.route" [queryParams]="item.queryParams">
+                <i [class.manga]="item.kind === 'manga'">{{ item.icon }}</i>
+                <span>
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.subtitle }}</small>
+                </span>
+                <em>{{ item.timeLabel }}</em>
+              </a>
+            } @empty {
+              <p class="empty">Aucune activité récente.</p>
+            }
+          </div>
+        </article>
+      </div>
+
+      <div class="dashboard-column">
+        <article class="dashboard-card library-card manga-card">
+          <header>
+            <h2>
+              <span class="card-icon manga-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 0-4-4V4Z" /><path d="M5 16V4" /></svg>
+              </span>
+              Mangathèque
+            </h2>
+            <a [routerLink]="mangaLibraryRoute(currentProfile)">Voir tout</a>
+          </header>
+          <div class="library-numbers">
+            <span><strong>{{ mangaTotal() }}</strong><small>Total mangas</small></span>
+            <span><strong>{{ mangaReading() }}</strong><small>En lecture</small></span>
+            <span><strong>{{ mangaCompleted() }}</strong><small>Terminés</small></span>
+            <span><strong>{{ mangaFavorites() }}</strong><small>Favoris</small></span>
+          </div>
+          <div class="wide-track"><i [style.width.%]="volumeProgressPercent()"></i></div>
+          <p>Tomes lus <span>{{ formatNumber(mangaReadVolumes()) }} / {{ formatNumber(mangaTotalVolumes()) }}</span></p>
+        </article>
+
+        <article class="dashboard-card badges-card">
+          <header>
+            <h2><span class="card-icon">◆</span> Badges</h2>
+            <a [routerLink]="achievementRoute(currentProfile)">Voir tous les badges</a>
+          </header>
+          <div class="badge-grid">
+            @for (badge of badgePreview(); track badge.id) {
+              <a [routerLink]="achievementRoute(currentProfile)" [class.locked]="!badge.unlocked">
+                <span [class.has-image]="badge.iconUrl">
+                  @if (badge.iconUrl) {
+                    <img [src]="badge.iconUrl" [alt]="badge.title" />
+                  } @else {
+                    {{ badge.icon }}
+                  }
+                </span>
+                <strong>{{ badge.title }}</strong>
+              </a>
+            }
+          </div>
+        </article>
+      </div>
+
+      <div class="dashboard-column dashboard-column-wide">
+        <article class="dashboard-card favorites-card">
+          <header>
+            <h2><span class="card-icon">★</span> Favoris</h2>
+            <a [routerLink]="animeLibraryRoute(currentProfile)">Voir tout</a>
+          </header>
+          <div class="favorite-strip">
+            @for (item of favoriteItems(); track item.id) {
+              <a [routerLink]="item.route" [queryParams]="item.queryParams">
+                <img [src]="item.coverUrl" [alt]="item.title" loading="lazy" />
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.subtitle }}</small>
+              </a>
+            } @empty {
+              <p class="empty">Aucun favori pour le moment.</p>
+            }
+          </div>
+        </article>
+
+        <div class="side-mini-grid">
+          <article class="dashboard-card genres-card">
+            <header>
+              <h2><span class="card-icon">✤</span> Genres préférés</h2>
+              <a [routerLink]="animeLibraryRoute(currentProfile)">Voir tous</a>
+            </header>
+            <div class="genre-list">
+              @for (genre of genreChips(); track genre.name) {
+                <span [class.manga]="genre.kind === 'manga'" [class.mixed]="genre.kind === 'mixed'">
+                  {{ genre.name }}
+                </span>
+              } @empty {
+                <p class="empty">Aucun genre détecté.</p>
+              }
+            </div>
+          </article>
+
+          <article class="dashboard-card stats-card">
+            <header>
+              <h2><span class="card-icon">▥</span> Statistiques</h2>
+              <a [routerLink]="animeLibraryRoute(currentProfile)">Voir le détail</a>
+            </header>
+            <div class="ring-grid">
+              <span [style.--value]="completedAnimePercent()">
+                <strong>{{ completedAnimePercent() }}%</strong>
+                <small>Séries terminées</small>
+              </span>
+              <span [style.--value]="episodeProgressPercent()">
+                <strong>{{ episodeProgressPercent() }}%</strong>
+                <small>Épisodes regardés</small>
+              </span>
+              <span [style.--value]="completedMangaPercent()">
+                <strong>{{ completedMangaPercent() }}%</strong>
+                <small>Mangas terminés</small>
+              </span>
+              <span [style.--value]="volumeProgressPercent()">
+                <strong>{{ volumeProgressPercent() }}%</strong>
+                <small>Tomes lus</small>
+              </span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <footer class="profile-footer">
+      <span>© 2026 AnimeClub · Tous droits réservés</span>
+      <nav aria-label="Liens secondaires">
+        <a routerLink="/legal-notice">Mentions légales</a>
+        <a routerLink="/terms">Conditions d'utilisation</a>
+        <a routerLink="/privacy-policy">Confidentialité</a>
+        <a routerLink="/legal-notice">Contact</a>
+      </nav>
+      <div aria-hidden="true">
+        <span>◐</span>
+        <span>𝕏</span>
+        <span>◎</span>
+      </div>
+    </footer>
+
+    @if (toastMessage()) {
+      <div class="profile-toast" role="status" aria-live="polite">
+        {{ toastMessage() }}
+      </div>
+    }
+  } @else {
+    <section class="state">{{ errorMessage() }}</section>
+  }
+</main>
