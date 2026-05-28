@@ -26,15 +26,23 @@ public interface CompteRepository extends JpaRepository<Compte, Integer> {
             from Compte compte
             where compte.id <> :accountId
               and compte.showOnlineDiscovery = true
-              and compte.lastActiveAt is not null
-              and compte.lastActiveAt > :onlineAfter
               and not exists (
                 select follow.id
                 from AccountFollow follow
                 where follow.follower.id = :accountId
                   and follow.followed.id = compte.id
               )
-            order by compte.lastActiveAt desc
+            order by
+              case
+                when compte.lastActiveAt is not null and compte.lastActiveAt > :onlineAfter then 0
+                else 1
+              end,
+              case
+                when compte.lastActiveAt is null then 1
+                else 0
+              end,
+              compte.lastActiveAt desc,
+              lower(compte.pseudo) asc
             """)
     List<Compte> findOnlineDiscoveryProfiles(
             @Param("accountId") Integer accountId,

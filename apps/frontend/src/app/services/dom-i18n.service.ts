@@ -297,6 +297,16 @@ const TEXT_TRANSLATIONS: Record<string, string> = {
     'Follow suggestions can fill this feed in a few clicks.',
   'En ligne à découvrir': 'Online profiles to discover',
   'Voir les profils connectés disponibles': 'View available online profiles',
+  'Profils à découvrir': 'Profiles to discover',
+  'Découvre les membres que tu ne suis pas encore, en ligne ou hors ligne.':
+    'Discover members you do not follow yet, online or offline.',
+  'Voir les comptes que tu ne suis pas encore': 'View accounts you do not follow yet',
+  'Aucun profil à découvrir ne correspond à cette recherche.':
+    'No profile to discover matches this search.',
+  'Aucun profil à découvrir pour le moment.': 'No profile to discover for now.',
+  'Hors ligne, mais disponible à suivre': 'Offline, but available to follow',
+  'Connecte-toi pour découvrir les profils.': 'Log in to discover profiles.',
+  'Impossible de charger les profils à découvrir.': 'Unable to load profiles to discover.',
   'activités': 'activities',
   'activites': 'activities',
   'Les animés les plus ajoutés récemment': 'Most recently added anime',

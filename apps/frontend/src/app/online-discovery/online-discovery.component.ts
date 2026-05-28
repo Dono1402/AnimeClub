@@ -55,10 +55,10 @@ export class OnlineDiscoveryComponent implements OnInit, OnDestroy {
 
   readonly emptyMessage = computed(() => {
     if (this.profileSearch().trim()) {
-      return 'Aucun profil en ligne ne correspond à cette recherche.';
+      return 'Aucun profil à découvrir ne correspond à cette recherche.';
     }
 
-    return 'Aucun profil en ligne à découvrir pour le moment.';
+    return 'Aucun profil à découvrir pour le moment.';
   });
 
   ngOnInit(): void {
@@ -149,7 +149,7 @@ export class OnlineDiscoveryComponent implements OnInit, OnDestroy {
       return `Favori : ${profile.favoriteAnime.trim()}`;
     }
 
-    return 'Disponible maintenant';
+    return profile.online ? 'Disponible maintenant' : 'Hors ligne, mais disponible à suivre';
   }
 
   profileSocialLine(profile: PublicProfile): string {
@@ -169,7 +169,7 @@ export class OnlineDiscoveryComponent implements OnInit, OnDestroy {
     if (!account) {
       this.loading.set(false);
       this.refreshing.set(false);
-      this.feedback.set('Connecte-toi pour découvrir les profils en ligne.');
+      this.feedback.set('Connecte-toi pour découvrir les profils.');
       return;
     }
 
@@ -186,7 +186,7 @@ export class OnlineDiscoveryComponent implements OnInit, OnDestroy {
         .pipe(
           catchError(() => {
             if (!silent) {
-              this.feedback.set('Impossible de charger les profils en ligne.');
+              this.feedback.set('Impossible de charger les profils à découvrir.');
             }
             return of([] as PublicProfile[]);
           }),

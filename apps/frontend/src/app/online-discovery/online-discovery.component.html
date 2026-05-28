@@ -4,8 +4,8 @@
   <section class="online-hero">
     <div class="hero-copy">
       <p class="eyebrow">Communauté</p>
-      <h1>Profils en ligne</h1>
-      <p>Découvre les membres connectés qui ont autorisé leur apparition ici.</p>
+      <h1>Profils à découvrir</h1>
+      <p>Découvre les membres que tu ne suis pas encore, en ligne ou hors ligne.</p>
     </div>
 
     <div class="hero-actions">
@@ -58,7 +58,11 @@
                 } @else {
                   <i>{{ initials(profile) }}</i>
                 }
-                <span class="presence-dot" aria-hidden="true"></span>
+                <span
+                  class="presence-dot"
+                  [class.online]="profile.online"
+                  [attr.aria-label]="profile.online ? 'En ligne' : 'Hors ligne'"
+                ></span>
               </span>
 
               <span class="profile-copy">
@@ -85,7 +89,7 @@
         } @empty {
           <div class="empty-state">
             <strong>{{ emptyMessage() }}</strong>
-            <span>La liste se met à jour automatiquement quand des profils deviennent disponibles.</span>
+            <span>La liste se met à jour automatiquement quand de nouveaux profils deviennent disponibles.</span>
           </div>
         }
       </div>

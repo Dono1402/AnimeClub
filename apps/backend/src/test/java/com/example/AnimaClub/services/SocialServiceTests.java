@@ -102,7 +102,7 @@ class SocialServiceTests {
     }
 
     @Test
-    void onlineDiscoveryOnlyReturnsOptedInOnlineUnfollowedProfiles() {
+    void onlineDiscoveryReturnsOptedInUnfollowedProfilesIncludingOffline() {
         Compte viewer = account("online-viewer");
         Compte visible = account("online-visible");
         Compte hidden = account("online-hidden");
@@ -119,8 +119,9 @@ class SocialServiceTests {
 
         List<PublicProfileResponse> profiles = socialService.onlineDiscoveryProfiles(viewer.getId());
 
-        assertEquals(List.of(visible.getId()), profiles.stream().map(PublicProfileResponse::id).toList());
+        assertEquals(List.of(visible.getId(), offline.getId()), profiles.stream().map(PublicProfileResponse::id).toList());
         assertTrue(profiles.get(0).online());
+        assertFalse(profiles.get(1).online());
     }
 
     @Test
