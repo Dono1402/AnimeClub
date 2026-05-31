@@ -86,7 +86,10 @@ public class CharacterCatalogController {
     }
 
     @GetMapping("/import/status")
-    public CharacterCatalogImportStatusResponse importStatus() {
+    public CharacterCatalogImportStatusResponse importStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String adminToken
+    ) {
+        adminAccessService.requireAdminAccess(adminToken);
         return characterCatalogService.status();
     }
 

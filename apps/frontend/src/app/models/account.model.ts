@@ -27,11 +27,12 @@ export interface CreateAccountRequest {
 export interface LoginRequest {
   pseudo: string;
   password: string;
+  rememberSession?: boolean;
 }
 
 export interface LoginResponse {
   account: Account;
-  sessionToken: string;
+  sessionToken?: string | null;
   expiresAt: string;
 }
 
@@ -42,6 +43,7 @@ export interface DiscordAuthorizeUrlResponse {
 export interface DiscordLoginRequest {
   code: string;
   redirectUri: string;
+  rememberSession?: boolean;
 }
 
 export interface DiscordLoginResponse {

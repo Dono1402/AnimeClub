@@ -15,6 +15,14 @@ public record DiscordLoginResponse(
         return new DiscordLoginResponse("login", login, null, null, null, null, null);
     }
 
+    public DiscordLoginResponse withoutSessionToken() {
+        if (login == null) {
+            return this;
+        }
+
+        return new DiscordLoginResponse(mode, login.withoutSessionToken(), signupToken, email, suggestedPseudo, expiresAt, message);
+    }
+
     public static DiscordLoginResponse signupRequired(
             String signupToken,
             String email,

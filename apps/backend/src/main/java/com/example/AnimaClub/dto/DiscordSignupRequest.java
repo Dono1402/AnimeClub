@@ -1,6 +1,7 @@
 package com.example.AnimaClub.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record DiscordSignupRequest(
@@ -8,7 +9,8 @@ public record DiscordSignupRequest(
         String signupToken,
 
         @NotBlank
-        @Size(max = 16)
+        @Size(min = 3, max = 16)
+        @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "doit contenir uniquement lettres, chiffres, tirets ou underscores.")
         String pseudo,
 
         @NotBlank

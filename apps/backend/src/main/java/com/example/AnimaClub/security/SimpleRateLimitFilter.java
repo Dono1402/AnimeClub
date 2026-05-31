@@ -88,8 +88,14 @@ public class SimpleRateLimitFilter extends OncePerRequestFilter {
 
         if ("POST".equals(method) && (path.equals("/account/login")
                 || path.equals("/account")
-                || path.equals("/account/email-confirmation/change-address"))) {
+                || path.equals("/account/email-confirmation/change-address")
+                || path.startsWith("/account/password-reset")
+                || path.startsWith("/account/oauth/discord"))) {
             return new RateLimitRule(path, sensitiveMaxRequests);
+        }
+
+        if ("POST".equals(method) && path.equals("/telemetry/frontend")) {
+            return new RateLimitRule(path, publicMaxRequests);
         }
 
         if (("POST".equals(method) || "PUT".equals(method)) && ACCOUNT_MESSAGES_PATH.matcher(path).matches()) {

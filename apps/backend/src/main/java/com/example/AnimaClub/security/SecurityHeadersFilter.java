@@ -23,7 +23,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
             "font-src 'self' data:",
             "style-src 'self' 'unsafe-inline'",
             "script-src 'self'",
-            "connect-src 'self' http://localhost:8080 http://127.0.0.1:8080 https://api.jikan.moe https://graphql.anilist.co https://kitsu.io",
+            "connect-src 'self' https://api.jikan.moe https://graphql.anilist.co https://kitsu.io",
             "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
             "media-src 'self' data: blob:"
     );

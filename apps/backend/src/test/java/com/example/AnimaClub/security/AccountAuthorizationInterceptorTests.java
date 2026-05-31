@@ -2,7 +2,6 @@ package com.example.AnimaClub.security;
 
 import com.example.AnimaClub.services.AuthSessionService;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -21,7 +20,7 @@ class AccountAuthorizationInterceptorTests {
 
         interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
 
-        verify(authSessionService).requireAccount("Bearer test-token", 42);
+        verify(authSessionService).requireAccount(request, 42);
     }
 
     @Test
@@ -48,7 +47,7 @@ class AccountAuthorizationInterceptorTests {
 
         interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
 
-        verify(authSessionService).requireAccount("Bearer test-token", 42);
+        verify(authSessionService).requireAccount(request, 42);
     }
 
     @Test
@@ -70,8 +69,6 @@ class AccountAuthorizationInterceptorTests {
     }
 
     private MockHttpServletRequest request(String method, String path) {
-        MockHttpServletRequest request = new MockHttpServletRequest(method, path);
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer test-token");
-        return request;
+        return new MockHttpServletRequest(method, path);
     }
 }

@@ -7,4 +7,7 @@ public record LoginResponse(
         String sessionToken,
         Instant expiresAt
 ) {
+    public LoginResponse withoutSessionToken() {
+        return new LoginResponse(account, null, expiresAt);
+    }
 }

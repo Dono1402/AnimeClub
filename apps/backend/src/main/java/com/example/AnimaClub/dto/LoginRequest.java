@@ -7,6 +7,11 @@ public record LoginRequest(
         String pseudo,
 
         @NotBlank
-        String password
+        String password,
+
+        Boolean rememberSession
 ) {
+    public boolean persistentSessionRequested() {
+        return Boolean.TRUE.equals(rememberSession);
+    }
 }

@@ -3,7 +3,6 @@ package com.example.AnimaClub.security;
 import com.example.AnimaClub.services.AuthSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -31,7 +30,7 @@ public class AccountAuthorizationInterceptor implements HandlerInterceptor {
 
         protectedAccountId(request)
                 .ifPresent((accountId) -> authSessionService.requireAccount(
-                        request.getHeader(HttpHeaders.AUTHORIZATION),
+                        request,
                         accountId
                 ));
 

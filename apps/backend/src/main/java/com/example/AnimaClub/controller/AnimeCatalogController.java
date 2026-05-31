@@ -97,7 +97,10 @@ public class AnimeCatalogController {
     }
 
     @GetMapping("/import/status")
-    public AnimeCatalogImportStatusResponse importStatus() {
+    public AnimeCatalogImportStatusResponse importStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String adminToken
+    ) {
+        adminAccessService.requireAdminAccess(adminToken);
         return animeCatalogService.status();
     }
 

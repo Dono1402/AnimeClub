@@ -9,20 +9,16 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  const token = shouldAttachAuthToken(request.method, request.url) ? authService.currentSessionToken() : null;
+  const shouldSendCookies = shouldSendCredentials(request.url);
 
-  const authenticatedRequest = token
-    ? request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+  const authenticatedRequest = shouldSendCookies
+    ? request.clone({ withCredentials: true })
     : request;
 
   return next(authenticatedRequest).pipe(
     catchError((error: unknown) => {
-      if (token && shouldClearSessionForAuthError(request.method, request.url, error)) {
-        const cleared = authService.clearRejectedSession(token);
+      if (shouldClearSessionForAuthError(request.method, request.url, error)) {
+        const cleared = authService.clearRejectedSession();
         if (cleared && router.url !== '/login') {
           void router.navigate(['/login'], { replaceUrl: true });
         }
@@ -33,15 +29,16 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   );
 };
 
-export function shouldAttachAuthToken(method: string, url: string): boolean {
-  const apiPath = pathFromApiUrl(url);
-  return apiPath !== null && !isPublicAuthPath(method, apiPath);
+export function shouldSendCredentials(url: string): boolean {
+  return pathFromApiUrl(url) !== null;
 }
 
 export function shouldClearSessionForAuthError(method: string, url: string, error: unknown): boolean {
+  const apiPath = pathFromApiUrl(url);
   return error instanceof HttpErrorResponse
     && error.status === 401
-    && shouldAttachAuthToken(method, url);
+    && apiPath !== null
+    && !isPublicAuthPath(method, apiPath);
 }
 
 function pathFromApiUrl(url: string): string | null {

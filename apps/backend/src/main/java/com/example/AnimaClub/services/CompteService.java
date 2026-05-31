@@ -21,6 +21,7 @@ import com.example.AnimaClub.model.Compte;
 import com.example.AnimaClub.repository.AccountFollowRepository;
 import com.example.AnimaClub.repository.AccountNotificationRepository;
 import com.example.AnimaClub.repository.CompteRepository;
+import com.example.AnimaClub.security.SecurityTokenHasher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -53,8 +54,7 @@ public class CompteService {
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/jpeg",
             "image/png",
-            "image/webp",
-            "image/gif"
+            "image/webp"
     );
 
     private final CompteRepository compteRepository;
@@ -141,7 +141,7 @@ public class CompteService {
         );
 
         String token = createToken();
-        compte.prepareEmailConfirmation(token, Instant.now().plus(Duration.ofHours(24)));
+        compte.prepareEmailConfirmation(tokenHash(token), Instant.now().plus(Duration.ofHours(24)));
 
         Compte savedAccount = compteRepository.save(compte);
         String confirmationLink = emailConfirmationService.buildConfirmationLink(token);
@@ -223,7 +223,9 @@ public class CompteService {
             throw new IllegalArgumentException("Lien de confirmation invalide.");
         }
 
-        Compte compte = compteRepository.findByEmailConfirmationToken(token.trim())
+        String cleanedToken = token.trim();
+        Compte compte = compteRepository.findByEmailConfirmationToken(tokenHash(cleanedToken))
+                .or(() -> compteRepository.findByEmailConfirmationToken(cleanedToken))
                 .orElseThrow(() -> new IllegalArgumentException("Lien de confirmation invalide."));
 
         if (compte.isEmailConfirmationExpired()) {
@@ -260,7 +262,7 @@ public class CompteService {
 
         String token = createToken();
         compte.setMail(mail);
-        compte.prepareEmailConfirmation(token, Instant.now().plus(Duration.ofHours(24)));
+        compte.prepareEmailConfirmation(tokenHash(token), Instant.now().plus(Duration.ofHours(24)));
 
         String confirmationLink = emailConfirmationService.buildConfirmationLink(token);
         emailConfirmationService.sendConfirmationEmail(compte, confirmationLink);
@@ -279,7 +281,7 @@ public class CompteService {
         return compteRepository.findByMailIgnoreCase(mail)
                 .map((compte) -> {
                     String token = createToken();
-                    compte.preparePasswordReset(token, Instant.now().plus(Duration.ofHours(1)));
+                    compte.preparePasswordReset(tokenHash(token), Instant.now().plus(Duration.ofHours(1)));
 
                     String resetLink = emailConfirmationService.buildPasswordResetLink(token);
                     emailConfirmationService.sendPasswordResetEmail(compte, resetLink);
@@ -295,7 +297,9 @@ public class CompteService {
             throw new IllegalArgumentException("Lien de réinitialisation invalide.");
         }
 
-        Compte compte = compteRepository.findByPasswordResetToken(request.token().trim())
+        String cleanedToken = request.token().trim();
+        Compte compte = compteRepository.findByPasswordResetToken(tokenHash(cleanedToken))
+                .or(() -> compteRepository.findByPasswordResetToken(cleanedToken))
                 .orElseThrow(() -> new IllegalArgumentException("Lien de réinitialisation invalide."));
 
         if (compte.isPasswordResetExpired()) {
@@ -561,6 +565,10 @@ public class CompteService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    private String tokenHash(String token) {
+        return SecurityTokenHasher.sha256Base64Url(token);
+    }
+
     private String uniqueExternalPseudo(String preferredDisplayName) {
         String base = clean(preferredDisplayName)
                 .replaceAll("[^\\p{IsAlphabetic}\\p{IsDigit}_-]", "")
@@ -586,7 +594,7 @@ public class CompteService {
     private String validateImageMetadata(MultipartFile file, long maxBytes, String label) {
         String contentType = normalizeContentType(file.getContentType());
         if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("Le fichier de " + label + " doit etre une image JPG, PNG, WebP ou GIF.");
+            throw new IllegalArgumentException("Le fichier de " + label + " doit etre une image JPG, PNG ou WebP.");
         }
 
         if (file.getSize() <= 0 || file.getSize() > maxBytes) {
@@ -628,10 +636,6 @@ public class CompteService {
 
         if (startsWith(data, 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)) {
             return Optional.of("image/png");
-        }
-
-        if (startsWithAscii(data, 0, "GIF87a") || startsWithAscii(data, 0, "GIF89a")) {
-            return Optional.of("image/gif");
         }
 
         if (startsWithAscii(data, 0, "RIFF") && startsWithAscii(data, 8, "WEBP")) {

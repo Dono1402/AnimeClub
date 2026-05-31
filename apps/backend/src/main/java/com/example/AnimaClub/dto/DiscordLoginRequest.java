@@ -7,6 +7,11 @@ public record DiscordLoginRequest(
         String code,
 
         @NotBlank
-        String redirectUri
+        String redirectUri,
+
+        Boolean rememberSession
 ) {
+    public boolean persistentSessionRequested() {
+        return Boolean.TRUE.equals(rememberSession);
+    }
 }

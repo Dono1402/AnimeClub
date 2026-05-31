@@ -37,7 +37,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
         CorsRegistration registration = registry.addMapping("/**")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true);
 
         if (hasConfiguredValues(allowedOriginPatterns)) {
             registration.allowedOriginPatterns(allowedOriginPatterns);

@@ -39,6 +39,20 @@ class SimpleRateLimitFilterTests {
     }
 
     @Test
+    void limitsPasswordResetAndTelemetryRequests() throws ServletException, IOException {
+        SimpleRateLimitFilter filter = new SimpleRateLimitFilter();
+        ReflectionTestUtils.setField(filter, "enabled", true);
+        ReflectionTestUtils.setField(filter, "windowSeconds", 60L);
+        ReflectionTestUtils.setField(filter, "publicMaxRequests", 1);
+        ReflectionTestUtils.setField(filter, "sensitiveMaxRequests", 1);
+
+        assertEquals(200, statusFor(filter, request("POST", "/account/password-reset/request")));
+        assertEquals(429, statusFor(filter, request("POST", "/account/password-reset/request")));
+        assertEquals(200, statusFor(filter, request("POST", "/telemetry/frontend")));
+        assertEquals(429, statusFor(filter, request("POST", "/telemetry/frontend")));
+    }
+
+    @Test
     void ignoresUnlistedRoutes() throws ServletException, IOException {
         SimpleRateLimitFilter filter = new SimpleRateLimitFilter();
         ReflectionTestUtils.setField(filter, "enabled", true);

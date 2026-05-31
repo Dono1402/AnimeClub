@@ -2,10 +2,12 @@ package com.example.AnimaClub.services;
 
 import com.example.AnimaClub.model.Compte;
 import com.example.AnimaClub.repository.CompteRepository;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,10 +39,20 @@ class AuthSessionServiceTests {
     }
 
     @Test
+    void acceptsHttpOnlyCookieSessionForMatchingAccount() {
+        Compte account = account("auth-cookie");
+        AuthSessionService.IssuedSession session = authSessionService.createSession(account);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new Cookie("__Host-animeclub_session", session.token()));
+
+        assertEquals(account.getId(), authSessionService.requireAccount(request, account.getId()).getId());
+    }
+
+    @Test
     void rejectsMissingBearerToken() {
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> authSessionService.requireAccount(null, 1)
+                () -> authSessionService.requireAccount((String) null, 1)
         );
 
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());

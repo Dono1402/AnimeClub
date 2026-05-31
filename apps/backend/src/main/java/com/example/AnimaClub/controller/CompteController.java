@@ -34,7 +34,10 @@ import com.example.AnimaClub.services.CompteService;
 import com.example.AnimaClub.services.DiscordOAuthService;
 import com.example.AnimaClub.services.MessagingService;
 import com.example.AnimaClub.services.SocialService;
+import com.example.AnimaClub.security.SessionCookieService;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +69,7 @@ public class CompteController {
     private final AdminAccessService adminAccessService;
     private final AuthSessionService authSessionService;
     private final DiscordOAuthService discordOAuthService;
+    private final SessionCookieService sessionCookieService;
 
     public CompteController(
             CompteService compteService,
@@ -73,7 +77,8 @@ public class CompteController {
             MessagingService messagingService,
             AdminAccessService adminAccessService,
             AuthSessionService authSessionService,
-            DiscordOAuthService discordOAuthService
+            DiscordOAuthService discordOAuthService,
+            SessionCookieService sessionCookieService
     ) {
         this.compteService = compteService;
         this.socialService = socialService;
@@ -81,6 +86,7 @@ public class CompteController {
         this.adminAccessService = adminAccessService;
         this.authSessionService = authSessionService;
         this.discordOAuthService = discordOAuthService;
+        this.sessionCookieService = sessionCookieService;
     }
 
     @GetMapping("/{id:\\d+}")
@@ -281,8 +287,15 @@ public class CompteController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return compteService.login(request);
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletResponse servletResponse) {
+        LoginResponse response = compteService.login(request);
+        sessionCookieService.writeSessionCookie(
+                servletResponse,
+                response.sessionToken(),
+                response.expiresAt(),
+                request.persistentSessionRequested()
+        );
+        return response.withoutSessionToken();
     }
 
     @GetMapping("/oauth/discord/authorize-url")
@@ -294,8 +307,20 @@ public class CompteController {
     }
 
     @PostMapping("/oauth/discord/login")
-    public DiscordLoginResponse discordLogin(@Valid @RequestBody DiscordLoginRequest request) {
-        return discordOAuthService.login(request);
+    public DiscordLoginResponse discordLogin(
+            @Valid @RequestBody DiscordLoginRequest request,
+            HttpServletResponse servletResponse
+    ) {
+        DiscordLoginResponse response = discordOAuthService.login(request);
+        if (response.login() != null) {
+            sessionCookieService.writeSessionCookie(
+                    servletResponse,
+                    response.login().sessionToken(),
+                    response.login().expiresAt(),
+                    request.persistentSessionRequested()
+            );
+        }
+        return response.withoutSessionToken();
     }
 
     @PostMapping("/oauth/discord/signup")
@@ -311,8 +336,14 @@ public class CompteController {
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
+    public void logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse
+    ) {
+        authSessionService.revoke(servletRequest);
         authSessionService.revoke(authorization);
+        sessionCookieService.clearSessionCookie(servletResponse);
     }
 
     @PostMapping("/password-reset/request")

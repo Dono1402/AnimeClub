@@ -19,15 +19,16 @@ import { environment } from '../../environments/environment';
 
 const SESSION_ACCOUNT_KEY = 'animaclub.account';
 const PERSISTED_ACCOUNT_KEY = 'animaclub.account.persisted';
-export const SESSION_AUTH_KEY = 'animaclub.session';
-export const PERSISTED_AUTH_KEY = 'animaclub.session.persisted';
+const LEGACY_SESSION_AUTH_KEY = 'animaclub.session';
+const LEGACY_PERSISTED_AUTH_KEY = 'animaclub.session.persisted';
+export const SESSION_AUTH_KEY = 'animaclub.session.v2';
+export const PERSISTED_AUTH_KEY = 'animaclub.session.persisted.v2';
 const DISCORD_OAUTH_STATE_KEY = 'animeclub.discord.oauth.state';
 const DISCORD_SIGNUP_KEY = 'animeclub.discord.signup';
 const DISCORD_OAUTH_REDIRECT_PATH = '/auth/discord/callback';
 
 interface StoredAuthSession {
   account: Account;
-  sessionToken: string;
   expiresAt: string;
 }
 
@@ -41,11 +42,14 @@ export class AuthService {
   readonly account$ = this.accountSubject.asObservable();
 
   login(request: LoginRequest, rememberSession = false): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.accountUrl}/login`, request).pipe(
+    return this.http.post<LoginResponse>(
+      `${this.accountUrl}/login`,
+      { ...request, rememberSession },
+      { withCredentials: true },
+    ).pipe(
       map((response) => this.requireValidLoginResponse(response)),
       tap((response) => this.setSession({
         account: response.account,
-        sessionToken: response.sessionToken,
         expiresAt: response.expiresAt,
       }, rememberSession)),
     );
@@ -58,7 +62,11 @@ export class AuthService {
   }
 
   loginWithDiscord(request: DiscordLoginRequest, rememberSession = true): Observable<DiscordLoginResponse> {
-    return this.http.post<DiscordLoginResponse>(`${this.accountUrl}/oauth/discord/login`, request).pipe(
+    return this.http.post<DiscordLoginResponse>(
+      `${this.accountUrl}/oauth/discord/login`,
+      { ...request, rememberSession },
+      { withCredentials: true },
+    ).pipe(
       map((response) => this.requireValidDiscordLoginResponse(response)),
       tap((response) => {
         if (response.mode !== 'login' || !response.login) {
@@ -67,7 +75,6 @@ export class AuthService {
 
         this.setSession({
           account: response.login.account,
-          sessionToken: response.login.sessionToken,
           expiresAt: response.login.expiresAt,
         }, rememberSession);
       }),
@@ -135,25 +142,23 @@ export class AuthService {
       });
     }
 
-    if (this.currentSession?.sessionToken) {
-      this.http.post<void>(`${this.accountUrl}/logout`, {}).subscribe({
-        error: () => undefined,
-      });
-    }
+    this.http.post<void>(`${this.accountUrl}/logout`, {}, { withCredentials: true }).subscribe({
+      error: () => undefined,
+    });
 
     this.clearSession();
     this.accountSubject.next(null);
   }
 
   isLoggedIn(): boolean {
-    return this.currentSessionToken() !== null && this.accountSubject.value !== null;
+    return this.activeSession() !== null && this.accountSubject.value !== null;
   }
 
   currentAccount(): Account | null {
-    return this.currentSessionToken() === null ? null : this.accountSubject.value;
+    return this.activeSession() === null ? null : this.accountSubject.value;
   }
 
-  currentSessionToken(): string | null {
+  private activeSession(): StoredAuthSession | null {
     if (!this.currentSession) {
       return null;
     }
@@ -164,11 +169,11 @@ export class AuthService {
       return null;
     }
 
-    return this.currentSession.sessionToken;
+    return this.currentSession;
   }
 
-  clearRejectedSession(rejectedToken: string): boolean {
-    if (!this.currentSession || this.currentSession.sessionToken !== rejectedToken) {
+  clearRejectedSession(): boolean {
+    if (!this.currentSession) {
       return false;
     }
 
@@ -221,15 +226,15 @@ export class AuthService {
   }
 
   private readSession(): StoredAuthSession | null {
+    this.clearLegacyStorage();
     const raw = sessionStorage.getItem(SESSION_AUTH_KEY) ?? localStorage.getItem(PERSISTED_AUTH_KEY);
     if (!raw) {
-      this.clearLegacyStorage();
       return null;
     }
 
     try {
       const session = JSON.parse(raw) as StoredAuthSession;
-      if (!session.account || !session.sessionToken) {
+      if (!session.account || !session.expiresAt) {
         this.clearSession();
         return null;
       }
@@ -261,11 +266,13 @@ export class AuthService {
   private clearLegacyStorage(): void {
     sessionStorage.removeItem(SESSION_ACCOUNT_KEY);
     localStorage.removeItem(PERSISTED_ACCOUNT_KEY);
+    sessionStorage.removeItem(LEGACY_SESSION_AUTH_KEY);
+    localStorage.removeItem(LEGACY_PERSISTED_AUTH_KEY);
   }
 
   private requireValidLoginResponse(response: LoginResponse): LoginResponse {
-    if (!response.account || !response.sessionToken?.trim()) {
-      throw new Error('Réponse de connexion invalide : session absente.');
+    if (!response.account || !response.expiresAt?.trim()) {
+      throw new Error('Reponse de connexion invalide : session absente.');
     }
 
     return response;

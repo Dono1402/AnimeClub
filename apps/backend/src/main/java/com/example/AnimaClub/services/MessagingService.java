@@ -36,8 +36,7 @@ public class MessagingService {
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/jpeg",
             "image/png",
-            "image/webp",
-            "image/gif"
+            "image/webp"
     );
 
     public record MessageImage(byte[] data, String contentType) {
@@ -286,7 +285,7 @@ public class MessagingService {
         if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Le fichier doit etre une image JPG, PNG, WebP ou GIF."
+                    "Le fichier doit etre une image JPG, PNG ou WebP."
             );
         }
 
@@ -333,10 +332,6 @@ public class MessagingService {
 
         if (startsWith(data, 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)) {
             return Optional.of("image/png");
-        }
-
-        if (startsWithAscii(data, 0, "GIF87a") || startsWithAscii(data, 0, "GIF89a")) {
-            return Optional.of("image/gif");
         }
 
         if (startsWithAscii(data, 0, "RIFF") && startsWithAscii(data, 8, "WEBP")) {
