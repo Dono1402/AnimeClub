@@ -1337,7 +1337,8 @@ button[mat-raised-button] {
   }
 }
 
-.profile-menu-panel.mat-mdc-menu-panel {
+.profile-menu-panel.mat-mdc-menu-panel,
+.mat-mdc-menu-panel:has(.profile-dropdown) {
   width: min(456px, calc(100vw - 24px));
   max-width: none;
   overflow: visible;
@@ -1353,7 +1354,8 @@ button[mat-raised-button] {
   backdrop-filter: blur(20px) saturate(128%);
 }
 
-.profile-menu-panel .mat-mdc-menu-content {
+.profile-menu-panel .mat-mdc-menu-content,
+.mat-mdc-menu-panel:has(.profile-dropdown) .mat-mdc-menu-content {
   overflow: visible;
   background: transparent;
   padding: 0;
@@ -1687,7 +1689,8 @@ button[mat-raised-button] {
 }
 
 @media (max-width: 560px) {
-  .profile-menu-panel.mat-mdc-menu-panel {
+  .profile-menu-panel.mat-mdc-menu-panel,
+  .mat-mdc-menu-panel:has(.profile-dropdown) {
     width: calc(100vw - 18px);
   }
 
@@ -1857,7 +1860,8 @@ button[mat-raised-button] {
   background: #ffb05c;
 }
 
-.notification-menu-panel.mat-mdc-menu-panel {
+.notification-menu-panel.mat-mdc-menu-panel,
+.mat-mdc-menu-panel:has(.notification-menu) {
   width: min(520px, calc(100vw - 24px));
   max-width: none;
   overflow: hidden;
@@ -1869,7 +1873,8 @@ button[mat-raised-button] {
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
 }
 
-.notification-menu-panel .mat-mdc-menu-content {
+.notification-menu-panel .mat-mdc-menu-content,
+.mat-mdc-menu-panel:has(.notification-menu) .mat-mdc-menu-content {
   overflow: hidden;
   background: transparent;
   padding: 0;
