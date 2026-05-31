@@ -9,6 +9,10 @@ self.addEventListener('activate', (event) => {
       await Promise.all(cacheNames.map((cacheName) => self.caches.delete(cacheName)));
     }
 
+    if (self.clients?.claim) {
+      await self.clients.claim();
+    }
+
     await self.registration.unregister();
 
     if (self.clients) {

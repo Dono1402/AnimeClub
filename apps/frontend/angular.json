@@ -46,6 +46,10 @@
                 "input": "src"
               },
               {
+                "glob": "sw-cleanup.js",
+                "input": "src"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
