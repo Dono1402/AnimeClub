@@ -38,6 +38,14 @@
                 "input": "src"
               },
               {
+                "glob": "ngsw-worker.js",
+                "input": "src"
+              },
+              {
+                "glob": "ngsw.json",
+                "input": "src"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
