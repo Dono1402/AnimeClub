@@ -80,7 +80,13 @@
           <path d="m7 10 5 5 5-5" />
         </svg>
       </button>
-      <mat-menu #profileMenu="matMenu" class="profile-menu-panel" xPosition="before" yPosition="below">
+      <mat-menu
+        #profileMenu="matMenu"
+        class="profile-menu-panel"
+        classList="profile-menu-panel"
+        xPosition="before"
+        yPosition="below"
+      >
         <div
           class="profile-dropdown"
           [style.--profile-dropdown-bg]="backgroundPicture(account) ? 'url(' + backgroundPicture(account) + ')' : null"
@@ -251,7 +257,13 @@
           <path d="m4 7 8 6 8-6" />
         </svg>
       </a>
-      <mat-menu #notificationMenu="matMenu" class="notification-menu-panel" xPosition="before" yPosition="below">
+      <mat-menu
+        #notificationMenu="matMenu"
+        class="notification-menu-panel"
+        classList="notification-menu-panel"
+        xPosition="before"
+        yPosition="below"
+      >
         <div class="notification-menu">
           <header>
             <span>
