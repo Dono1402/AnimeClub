@@ -1,5 +1,5 @@
 (function () {
-  var cleanupKey = "animeclub-sw-cleanup-20260531";
+  var cleanupKey = "animeclub-sw-cleanup-20260606-css-csp";
 
   function markCleaned() {
     try {

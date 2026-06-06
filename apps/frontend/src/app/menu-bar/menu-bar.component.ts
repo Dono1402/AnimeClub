@@ -164,10 +164,6 @@ export class MenuBarComponent implements OnInit {
     return this.profileService.assetUrl(account.profilePictureUrl);
   }
 
-  backgroundPicture(account: Account): string | null {
-    return this.profileService.assetUrl(account.backgroundUrl);
-  }
-
   messageBadgeLabel(): string {
     const count = this.visibleUnreadMessageCount();
     return count > 99 ? '99+' : String(count);

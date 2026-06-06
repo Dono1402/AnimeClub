@@ -83,13 +83,11 @@
       <mat-menu
         #profileMenu="matMenu"
         class="profile-menu-panel"
-        [classList]="'profile-menu-panel'"
         xPosition="before"
         yPosition="below"
       >
         <div
           class="profile-dropdown"
-          [style.--profile-dropdown-bg]="backgroundPicture(account) ? 'url(' + backgroundPicture(account) + ')' : null"
         >
           <header class="profile-dropdown-hero">
             <span class="profile-dropdown-avatar" aria-hidden="true">
@@ -260,7 +258,6 @@
       <mat-menu
         #notificationMenu="matMenu"
         class="notification-menu-panel"
-        [classList]="'notification-menu-panel'"
         xPosition="before"
         yPosition="below"
       >

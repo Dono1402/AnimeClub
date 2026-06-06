@@ -1,3 +1,5 @@
+const cleanupVersion = 'animeclub-sw-retire-20260606-css-csp';
+
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
@@ -19,5 +21,7 @@ self.addEventListener('activate', (event) => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       await Promise.all(windows.map((client) => client.navigate(client.url)));
     }
+
+    return cleanupVersion;
   })());
 });
