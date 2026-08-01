@@ -53,6 +53,20 @@ class SimpleRateLimitFilterTests {
     }
 
     @Test
+    void givesTranslationRequestsTheirOwnLimit() throws ServletException, IOException {
+        SimpleRateLimitFilter filter = new SimpleRateLimitFilter();
+        ReflectionTestUtils.setField(filter, "enabled", true);
+        ReflectionTestUtils.setField(filter, "windowSeconds", 60L);
+        ReflectionTestUtils.setField(filter, "publicMaxRequests", 120);
+        ReflectionTestUtils.setField(filter, "sensitiveMaxRequests", 1);
+        ReflectionTestUtils.setField(filter, "translationMaxRequests", 2);
+
+        assertEquals(200, statusFor(filter, request("POST", "/translation")));
+        assertEquals(200, statusFor(filter, request("POST", "/translation")));
+        assertEquals(429, statusFor(filter, request("POST", "/translation")));
+    }
+
+    @Test
     void ignoresUnlistedRoutes() throws ServletException, IOException {
         SimpleRateLimitFilter filter = new SimpleRateLimitFilter();
         ReflectionTestUtils.setField(filter, "enabled", true);

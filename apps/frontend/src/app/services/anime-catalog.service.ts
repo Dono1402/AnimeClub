@@ -25,6 +25,16 @@ import {
   PopularAnimePage,
   PopularAnimeSeason,
 } from '../models/anime.model';
+import {
+  MADOKA_FRANCHISE_TITLE,
+  MADOKA_MAIN_ANIME_ID,
+  MADOKA_MOVIE_COLLECTION_SLUG,
+  buildMadokaMovieCollection,
+  isMadokaCanonicalFollowupMovieId,
+  isMadokaMovieId,
+  isMadokaMovieOnlyGroup,
+  isMadokaRecapMovieId,
+} from '../utils/anime-franchise-overrides.util';
 
 interface JikanNamedResource {
   name?: string;
@@ -161,6 +171,7 @@ const SERIES_ALIASES: { match: RegExp; title: string }[] = [
   { match: /^classroom of the elite/i, title: 'Classroom of the Elite' },
   { match: /^clannad/i, title: 'Clannad' },
   { match: /^demon slayer/i, title: 'Demon Slayer: Kimetsu no Yaiba' },
+  { match: /^puella magi madoka magica/i, title: MADOKA_FRANCHISE_TITLE },
   { match: /^a certain scientific railgun/i, title: 'A Certain Scientific Railgun' },
   { match: /^akb0048/i, title: 'AKB0048' },
   { match: /^aria the (animation|natural|origination|avvenire|crepuscolo|benedizione)/i, title: 'Aria' },
@@ -275,6 +286,7 @@ export class AnimeCatalogService {
     page: number,
     sortMode: AnimeCatalogSortMode = 'popularity-asc',
     filters: AnimeCatalogFilters = {},
+    enrichMissingFacts = true,
   ): Observable<PopularAnimePage> {
     const hasFilters = this.hasCatalogFilters(filters);
     if (sortMode === 'rank-asc' && !hasFilters) {
@@ -282,7 +294,7 @@ export class AnimeCatalogService {
     }
 
     const jikanSort = this.jikanSortFor(sortMode);
-    return this.getBackendAnimePage('', page, sortMode, filters).pipe(
+    return this.getBackendAnimePage('', page, sortMode, filters, true, ANIME_PAGE_SIZE, enrichMissingFacts).pipe(
       switchMap((result) =>
         result.items.length > 0 || result.totalItems > 0
           ? of(result)
@@ -1139,7 +1151,20 @@ export class AnimeCatalogService {
       groups.set(identity.key, current);
     }
 
-    return Array.from(groups.values()).map((group) => (group.length > 1 ? this.mergeSeriesGroup(group) : this.withSeasons(group[0])));
+    const groupedItems = Array.from(groups.values()).map((group) =>
+      group.length > 1 ? this.mergeSeriesGroup(group) : this.withSeasons(group[0]),
+    );
+    const movieCollection = buildMadokaMovieCollection(items);
+    if (!movieCollection) {
+      return groupedItems;
+    }
+
+    const visibleItems = groupedItems.filter((item) => !isMadokaMovieOnlyGroup(item));
+    const mainSeriesIndex = visibleItems.findIndex((item) =>
+      item.seasons.some((season) => season.malId === MADOKA_MAIN_ANIME_ID),
+    );
+    visibleItems.splice(mainSeriesIndex >= 0 ? mainSeriesIndex + 1 : visibleItems.length, 0, movieCollection);
+    return visibleItems;
   }
 
   private catalogItemsForDisplay(items: PopularAnime[], groupSeries: boolean): PopularAnime[] {
@@ -1172,7 +1197,12 @@ export class AnimeCatalogService {
     return this.searchGroupedAnimePool(query).pipe(
       map((result) => {
         const items = this.catalogItemsForDisplay(result, true);
-        return items.find((item) => this.matchesSelection(item, selection)) ?? items[0] ?? null;
+        return (
+          this.preferredFranchiseGroupForSelection(items, selection) ??
+          items.find((item) => this.matchesSelection(item, selection)) ??
+          items[0] ??
+          null
+        );
       }),
       catchError(() => of(null)),
     );
@@ -1180,11 +1210,15 @@ export class AnimeCatalogService {
 
   private findGroupedAnimeForDetail(anime: PopularAnime): Observable<PopularAnime | null> {
     const identity = this.seriesIdentity(anime);
-    const query = identity.title || anime.title;
+    const query = isMadokaMovieId(anime.id) ? MADOKA_FRANCHISE_TITLE : identity.title || anime.title;
     return this.searchGroupedAnimePool(query).pipe(
       map((items) => {
         const groupedItems = this.catalogItemsForDisplay([anime, ...items], true);
+        const preferredGroup = isMadokaMovieId(anime.id)
+          ? groupedItems.find((item) => item.slug === MADOKA_MOVIE_COLLECTION_SLUG)
+          : null;
         return (
+          preferredGroup ??
           groupedItems.find((item) => item.seasons.some((season) => season.malId === anime.id)) ??
           groupedItems.find((item) => this.matchesSelection(item, anime.slug.toLowerCase())) ??
           anime
@@ -1195,14 +1229,31 @@ export class AnimeCatalogService {
   }
 
   private searchGroupedAnimePool(query: string, pageSize = 25): Observable<PopularAnime[]> {
-    return this.getBackendAnimePage(query, 1, 'popularity-asc', {}, true, pageSize, false).pipe(
+    return this.getBackendAnimePage(query, 1, 'popularity-asc', {}, false, pageSize, false).pipe(
       switchMap((backendResult) =>
         backendResult.items.length > 0
           ? of(backendResult.items)
-          : this.searchJikanAnime(query, 1, 'popularity', 'asc', {}, true, pageSize).pipe(map((page) => page.items)),
+          : this.searchJikanAnime(query, 1, 'popularity', 'asc', {}, false, pageSize).pipe(map((page) => page.items)),
       ),
-      catchError(() => this.searchJikanAnime(query, 1, 'popularity', 'asc', {}, true, pageSize).pipe(map((page) => page.items))),
+      catchError(() => this.searchJikanAnime(query, 1, 'popularity', 'asc', {}, false, pageSize).pipe(map((page) => page.items))),
     );
+  }
+
+  private preferredFranchiseGroupForSelection(items: PopularAnime[], selection: string): PopularAnime | null {
+    const collection = items.find((item) => item.slug === MADOKA_MOVIE_COLLECTION_SLUG);
+    if (!collection) {
+      return null;
+    }
+
+    if (selection === MADOKA_MOVIE_COLLECTION_SLUG) {
+      return collection;
+    }
+
+    return collection.seasons.some(
+      (season) => season.slug.toLowerCase() === selection || this.seriesSlugForTitle(season.title) === selection,
+    )
+      ? collection
+      : null;
   }
 
   private matchesSelection(anime: PopularAnime, selection: string): boolean {
@@ -1224,6 +1275,10 @@ export class AnimeCatalogService {
   }
 
   private searchQueryFromSelection(selection: string): string {
+    if (selection === MADOKA_MOVIE_COLLECTION_SLUG) {
+      return MADOKA_FRANCHISE_TITLE;
+    }
+
     const query = selection.replace(/^series-/, '').replace(/-/g, ' ').trim();
     const normalizedQuery = this.normalizeCatalogTitle(query);
     const alias = SERIES_ALIASES.find((entry) => {
@@ -1572,6 +1627,14 @@ export class AnimeCatalogService {
     const normalizedType = this.normalizeMediaType(this.followupSourceType(anime));
     if (!['movie', 'film'].includes(normalizedType)) {
       return false;
+    }
+
+    if (isMadokaRecapMovieId(anime.id)) {
+      return false;
+    }
+
+    if (isMadokaCanonicalFollowupMovieId(anime.id)) {
+      return true;
     }
 
     if (this.isRelatedButNotMainFollowupTitle(sourceTitle)) {

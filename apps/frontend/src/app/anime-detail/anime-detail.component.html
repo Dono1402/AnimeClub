@@ -242,9 +242,9 @@
             <div class="section-title season-title-row">
               <span class="section-mark"></span>
               <span class="section-icon">S</span>
-              <h2>Saisons & suivi</h2>
+              <h2>{{ seasonHubTitle(currentAnime) }}</h2>
               <span class="series-progress-copy">
-                Progression de la série : {{ overallProgressLabel(currentAnime) }}
+                {{ overallProgressTitle(currentAnime) }} : {{ overallProgressLabel(currentAnime) }}
               </span>
             </div>
 

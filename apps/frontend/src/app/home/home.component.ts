@@ -109,6 +109,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   private pendingActivityLikeKeys = new Set<string>();
   private likeAnimationTimerIds = new Map<string, number>();
   private catalogSpotlightPool: PopularAnime[] = [];
+  private weeklyRankingSpotlightPool: PopularAnime[] = [];
+  private popularSpotlightPool: PopularAnime[] = [];
+  private scoredSpotlightPool: PopularAnime[] = [];
   private profileLibraryEntries: AnimethequeEntry[] = [];
   private profileGenreScores = new Map<string, number>();
   private profileSpotlightRequestId = 0;
@@ -353,17 +356,40 @@ export class HomeComponent implements OnInit, OnDestroy {
   private loadCatalogSections(): void {
     this.catalogLoading.set(true);
     this.subscriptions.add(
+      this.animeCatalogService
+        .getWeeklyAnimeRanking(10)
+        .pipe(catchError(() => of(this.emptyAnimePage(1))))
+        .subscribe((topRanking) => {
+          this.weeklyRankingSpotlightPool = topRanking.items;
+          this.topWeekCards.set(topRanking.items.slice(0, 10).map((anime) => this.toAnimeCard(anime)));
+          this.refreshCatalogSpotlightPool();
+          this.catalogLoading.set(false);
+        }),
+    );
+
+    this.subscriptions.add(
       forkJoin({
-        topRanking: this.animeCatalogService.getWeeklyAnimeRanking(10).pipe(catchError(() => of(this.emptyAnimePage(1)))),
-        popular: this.animeCatalogService.getPopularAnime(1, 'popularity-asc').pipe(catchError(() => of(this.emptyAnimePage(1)))),
-        scored: this.animeCatalogService.getPopularAnime(1, 'score-desc').pipe(catchError(() => of(this.emptyAnimePage(1)))),
-      }).subscribe(({ topRanking, popular, scored }) => {
-        this.catalogSpotlightPool = [...topRanking.items, ...popular.items, ...scored.items];
-        this.topWeekCards.set(topRanking.items.slice(0, 10).map((anime) => this.toAnimeCard(anime)));
-        this.refreshSpotlightCards();
-        this.catalogLoading.set(false);
+        popular: this.animeCatalogService
+          .getPopularAnime(1, 'popularity-asc', {}, false)
+          .pipe(catchError(() => of(this.emptyAnimePage(1)))),
+        scored: this.animeCatalogService
+          .getPopularAnime(1, 'score-desc', {}, false)
+          .pipe(catchError(() => of(this.emptyAnimePage(1)))),
+      }).subscribe(({ popular, scored }) => {
+        this.popularSpotlightPool = popular.items;
+        this.scoredSpotlightPool = scored.items;
+        this.refreshCatalogSpotlightPool();
       }),
     );
+  }
+
+  private refreshCatalogSpotlightPool(): void {
+    this.catalogSpotlightPool = [
+      ...this.weeklyRankingSpotlightPool,
+      ...this.popularSpotlightPool,
+      ...this.scoredSpotlightPool,
+    ];
+    this.refreshSpotlightCards();
   }
 
   private loadPersonalSections(account: Account | null): void {

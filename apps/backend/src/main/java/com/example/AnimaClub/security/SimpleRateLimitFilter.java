@@ -41,6 +41,9 @@ public class SimpleRateLimitFilter extends OncePerRequestFilter {
     @Value("${app.rate-limit.sensitive-max-requests:20}")
     private int sensitiveMaxRequests;
 
+    @Value("${app.rate-limit.translation-max-requests:60}")
+    private int translationMaxRequests;
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -119,7 +122,7 @@ public class SimpleRateLimitFilter extends OncePerRequestFilter {
         }
 
         if ("POST".equals(method) && path.equals("/translation")) {
-            return new RateLimitRule(path, sensitiveMaxRequests);
+            return new RateLimitRule(path, translationMaxRequests);
         }
 
         return null;

@@ -880,6 +880,10 @@ public class CharacterCatalogService {
     private String cleanAbout(String about) {
         String cleaned = about == null ? "" : about
                 .replaceAll("\\s*\\((?:[^)]*(?:Source:|MAL Rewrite|Written by)[^)]*)\\)", "")
+                .replace("client\uFFFDle", "client\u00E8le")
+                .replace("s\uFFFDur", "s\u0153ur")
+                .replace("Bud\uFFFDkai", "Bud\u014Dkai")
+                .replace("\uFFFD", "")
                 .replaceAll("[ \\t]+\\n", "\n")
                 .trim();
 

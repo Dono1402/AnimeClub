@@ -1,18 +1,17 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal, untracked } from '@angular/core';
+import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 export type AppLanguage = 'fr' | 'en';
 
 type TranslationParams = Record<string, string | number>;
 type TranslationDictionary = Record<string, Record<AppLanguage, string>>;
 
-interface MyMemoryResponse {
-  responseData?: {
-    translatedText?: string;
-  };
-  responseDetails?: string;
-  responseStatus?: number;
+interface BackendTranslationResponse {
+  translatedText?: string;
+  provider?: string;
 }
 
 interface TranslationChunkResult {
@@ -21,7 +20,7 @@ interface TranslationChunkResult {
 }
 
 const LANGUAGE_KEY = 'animaclub.language';
-const TRANSLATION_CACHE_KEY = 'animaclub.translationCache.google.v1';
+const TRANSLATION_CACHE_KEY = 'animaclub.translationCache.backend.v2';
 
 const DICTIONARY: TranslationDictionary = {
   'common.fr': { fr: 'Français', en: 'French' },
@@ -374,6 +373,7 @@ const DICTIONARY: TranslationDictionary = {
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly http = inject(HttpClient);
+  private readonly translationUrl = `${environment.apiUrl}/translation`;
   private readonly translationCache = signal<Record<string, string>>(this.readTranslationCache());
 
   readonly language = signal<AppLanguage>(this.readLanguage());
@@ -399,7 +399,7 @@ export class LanguageService {
     }
 
     const cacheKey = `${source}:${target}:${cleanText}`;
-    const cached = this.translationCache()[cacheKey];
+    const cached = untracked(() => this.translationCache())[cacheKey];
     if (cached && this.isUsableTranslation(cached, cleanText)) {
       return of(cached);
     }
@@ -431,66 +431,20 @@ export class LanguageService {
   }
 
   private translateChunk(text: string, source: AppLanguage, target: AppLanguage): Observable<TranslationChunkResult> {
-    return this.translateChunkWithGoogle(text, source, target).pipe(
-      switchMap((result) =>
-        this.isUsableTranslation(result.text, text) ? of(result) : this.translateChunkWithMyMemory(text, source, target),
-      ),
-      map((result) => (this.isUsableTranslation(result.text, text) ? result : { text, cacheable: false })),
-      catchError(() => this.translateChunkWithMyMemory(text, source, target)),
-    );
-  }
-
-  private translateChunkWithGoogle(
-    text: string,
-    source: AppLanguage,
-    target: AppLanguage,
-  ): Observable<TranslationChunkResult> {
-    const params = new HttpParams()
-      .set('client', 'gtx')
-      .set('sl', source)
-      .set('tl', target)
-      .set('dt', 't')
-      .set('q', text);
-
-    return this.http.get<unknown[]>('https://translate.googleapis.com/translate_a/single', { params }).pipe(
-      map((response) => this.extractGoogleTranslation(response) || text),
-      map((translation) => ({
-        text: translation,
-        cacheable: this.isUsableTranslation(translation, text),
-      })),
-      catchError(() => of({ text, cacheable: false })),
-    );
-  }
-
-  private translateChunkWithMyMemory(
-    text: string,
-    source: AppLanguage,
-    target: AppLanguage,
-  ): Observable<TranslationChunkResult> {
-    const params = new HttpParams().set('q', text).set('langpair', `${source}|${target}`);
-
-    return this.http.get<MyMemoryResponse>('https://api.mymemory.translated.net/get', { params }).pipe(
+    return this.http.post<BackendTranslationResponse>(this.translationUrl, {
+      text,
+      sourceLanguage: source,
+      targetLanguage: target,
+    }).pipe(
       map((response) => {
-        if (response.responseStatus && response.responseStatus >= 400) {
-          return { text, cacheable: false };
-        }
-
-        const translatedText = response.responseData?.translatedText?.trim() || '';
+        const translatedText = response.translatedText?.trim() || '';
         return {
           text: this.isUsableTranslation(translatedText, text) ? translatedText : text,
-          cacheable: false,
+          cacheable: this.isUsableTranslation(translatedText, text),
         };
       }),
       catchError(() => of({ text, cacheable: false })),
     );
-  }
-
-  private extractGoogleTranslation(response: unknown[]): string {
-    const sentenceGroups = Array.isArray(response[0]) ? response[0] : [];
-    return sentenceGroups
-      .map((segment) => (Array.isArray(segment) && typeof segment[0] === 'string' ? segment[0] : ''))
-      .join('')
-      .trim();
   }
 
   private isUsableTranslation(translatedText: string, originalText: string): boolean {

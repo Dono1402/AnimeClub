@@ -20,6 +20,7 @@ import { CharacterCatalogService } from '../services/character-catalog.service';
 import { LanguageService } from '../services/language.service';
 import { MarketingAnalyticsService } from '../services/marketing-analytics.service';
 import { SeoService } from '../services/seo.service';
+import { madokaMovieNumber } from '../utils/anime-franchise-overrides.util';
 import { animeTypeLabel, isMovieAnime, isMovieSeason, isMovieType } from '../utils/anime-format.util';
 import { cleanSeasonTitle, labelMainSeason, mainSeasonNumberFor, uniqueMainSeasonCount } from '../utils/anime-season-label.util';
 
@@ -104,7 +105,7 @@ export class AnimeDetailComponent implements OnInit {
       return null;
     }
 
-    return this.mainSeasonNumber(anime, season);
+    return isMovieSeason(season) ? this.movieSequenceNumber(anime, season) ?? 1 : this.mainSeasonNumber(anime, season);
   });
 
   readonly visibleEpisodeOptions = computed(() =>
@@ -390,6 +391,10 @@ export class AnimeDetailComponent implements OnInit {
 
     if (anime.seasons.length > 1) {
       const seasonCount = this.seasonCollectionLabel(anime);
+      if (this.isMovieCollection(anime)) {
+        return seasonCount;
+      }
+
       const episodeCount =
         anime.episodes > 0
           ? this.languageService.t('anime.episodeTotal', { count: anime.episodes })
@@ -681,6 +686,10 @@ export class AnimeDetailComponent implements OnInit {
     }
 
     if (anime.seasons.length > 1) {
+      if (this.isMovieCollection(anime)) {
+        return 'Collection de films';
+      }
+
       return 'Multi-saisons';
     }
 
@@ -801,12 +810,24 @@ export class AnimeDetailComponent implements OnInit {
 
   seasonCardMeta(anime: PopularAnime, season: PopularAnimeSeason): string {
     const type = this.isSpinOffSeason(anime, season) ? 'Spin-off' : animeTypeLabel(season.type);
+    const year = season.year ? String(season.year) : 'Date inconnue';
+    if (isMovieSeason(season)) {
+      return `${type} · ${year}`;
+    }
+
     const episodes =
       season.episodes > 0
         ? this.languageService.t('anime.episodeCount', { count: season.episodes })
         : this.languageService.t('anime.episodesUnknown');
-    const year = season.year ? String(season.year) : 'Date inconnue';
     return `${type} · ${episodes} · ${year}`;
+  }
+
+  seasonHubTitle(anime: PopularAnime): string {
+    return this.isMovieCollection(anime) ? 'Films & suivi' : 'Saisons & suivi';
+  }
+
+  overallProgressTitle(anime: PopularAnime): string {
+    return this.isMovieCollection(anime) ? 'Progression des films' : 'Progression de la série';
   }
 
   hasSeparateSeasonTracking(anime: PopularAnime): boolean {
@@ -850,6 +871,11 @@ export class AnimeDetailComponent implements OnInit {
   }
 
   overallProgressLabel(anime: PopularAnime): string {
+    if (this.isMovieCollection(anime)) {
+      const watchedMovies = anime.seasons.filter((season) => this.seasonWatchedEpisodes(anime, season) > 0).length;
+      return `${watchedMovies} / ${anime.seasons.length} films vus`;
+    }
+
     const total = this.overallTotalEpisodes(anime);
     return `${this.overallWatchedEpisodes(anime)} / ${total > 0 ? total : '?'} épisodes vus`;
   }
@@ -1024,6 +1050,10 @@ export class AnimeDetailComponent implements OnInit {
 
   seasonProgressLabel(anime: PopularAnime, season: PopularAnimeSeason): string {
     const watched = this.seasonWatchedEpisodes(anime, season);
+    if (isMovieSeason(season)) {
+      return watched > 0 ? 'Film vu' : 'Film non vu';
+    }
+
     const total = this.seasonTotalEpisodes(season);
     return `${watched} / ${total > 0 ? total : '?'} \u00c9pisodes vus`;
   }
@@ -1574,7 +1604,10 @@ export class AnimeDetailComponent implements OnInit {
   }
 
   private shouldTrackSeasonsSeparately(anime: PopularAnime): boolean {
-    return this.mainSeasonCount(anime) > 1 && !this.isContinuousAnime(anime) && !isMovieAnime(anime);
+    const trackableParts = anime.seasons.filter(
+      (season) => this.isMainSeason(anime, season) || isMovieSeason(season),
+    ).length;
+    return trackableParts > 1 && !this.isContinuousAnime(anime);
   }
 
   private mainSeasonCount(anime: PopularAnime): number {
@@ -1867,7 +1900,8 @@ export class AnimeDetailComponent implements OnInit {
 
   private extraSeasonDetailTitle(anime: PopularAnime, season: PopularAnimeSeason): string {
     let detail = season.title.trim();
-    for (const removableTitle of [anime.title, anime.titleJapanese].filter(Boolean) as string[]) {
+    const collectionBaseTitle = anime.title.replace(/\s*-\s*films\s*$/i, '').trim();
+    for (const removableTitle of [anime.title, collectionBaseTitle, anime.titleJapanese].filter(Boolean) as string[]) {
       detail = detail.replace(new RegExp(this.escapeRegExp(removableTitle), 'gi'), ' ');
     }
 
@@ -1885,6 +1919,7 @@ export class AnimeDetailComponent implements OnInit {
       detail = detail
         .replace(/\bthe movie\b/gi, ' ')
         .replace(/\bmovie\b/gi, ' ')
+        .replace(/\bpart\s+\d+\b/gi, ' ')
         .replace(/^\s*\d+\s*/, ' ')
         .replace(/\s+/g, ' ')
         .trim();
@@ -1899,7 +1934,8 @@ export class AnimeDetailComponent implements OnInit {
 
   private extraSeasonCode(season: PopularAnimeSeason, anime?: PopularAnime): string {
     if (isMovieSeason(season)) {
-      return 'Film';
+      const sequenceNumber = anime ? this.movieSequenceNumber(anime, season) : madokaMovieNumber(season.malId);
+      return sequenceNumber ? `Film ${sequenceNumber}` : 'Film';
     }
 
     const normalizedType = season.type
@@ -1916,6 +1952,21 @@ export class AnimeDetailComponent implements OnInit {
     }
 
     return 'OVA';
+  }
+
+  private movieSequenceNumber(anime: PopularAnime, season: PopularAnimeSeason): number | null {
+    const officialMadokaNumber = madokaMovieNumber(season.malId);
+    if (officialMadokaNumber) {
+      return officialMadokaNumber;
+    }
+
+    const movieSeasons = anime.seasons.filter((currentSeason) => isMovieSeason(currentSeason));
+    const index = movieSeasons.findIndex((currentSeason) => currentSeason.slug === season.slug);
+    return movieSeasons.length > 1 && index >= 0 ? index + 1 : null;
+  }
+
+  private isMovieCollection(anime: PopularAnime): boolean {
+    return anime.seasons.length > 1 && anime.seasons.every((season) => isMovieSeason(season));
   }
 
   private escapeRegExp(value: string): string {
