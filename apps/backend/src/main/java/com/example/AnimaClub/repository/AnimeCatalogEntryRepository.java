@@ -19,6 +19,22 @@ public interface AnimeCatalogEntryRepository extends JpaRepository<AnimeCatalogE
 
     Optional<AnimeCatalogEntry> findBySlug(String slug);
 
+    @Query(value = """
+            select entry.*
+            from anime_catalog_entry entry
+            order by greatest(
+                    similarity(lower(entry.title), lower(:query)),
+                    similarity(lower(coalesce(entry.title_english, '')), lower(:query)),
+                    similarity(lower(coalesce(entry.title_japanese, '')), lower(:query))
+                  ) desc,
+                  entry.popularity asc nulls last,
+                  entry.mal_id asc
+            """, nativeQuery = true)
+    List<AnimeCatalogEntry> findRouteCandidates(
+            @Param("query") String query,
+            Pageable pageable
+    );
+
     @Query("""
             select entry from AnimeCatalogEntry entry
             where (

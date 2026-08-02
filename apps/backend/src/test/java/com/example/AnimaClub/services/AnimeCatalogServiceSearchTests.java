@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -79,6 +80,55 @@ class AnimeCatalogServiceSearchTests {
         var result = service.list("Pok\u00e9mon", 1, 9, "", "", "", null, "", null, "popularity-asc");
 
         assertThat(result.items()).extracting("malId").containsExactly(527);
+    }
+
+    @Test
+    void findBySlugResolvesSeriesRouteWithoutTitlePunctuation() {
+        service = service();
+        AnimeCatalogEntry anime = anime(36873, "mal-36873", "Back Street Girls: Gokudols");
+        when(animeCatalogEntryRepository.findBySlug("series-back-street-girls-gokudols"))
+                .thenReturn(Optional.empty());
+        when(animeCatalogEntryRepository.findRouteCandidates(
+                eq("back street girls gokudols"),
+                any(Pageable.class)
+        )).thenReturn(List.of(anime));
+
+        var result = service.findBySlug("series-back-street-girls-gokudols");
+
+        assertThat(result).isNotNull();
+        assertThat(result.malId()).isEqualTo(36873);
+    }
+
+    @Test
+    void findBySlugResolvesAGroupedBaseTitleFromASeasonTitle() {
+        service = service();
+        AnimeCatalogEntry anime = anime(42249, "mal-42249", "Tokyo Revengers: Seiya Kessen-hen");
+        anime.setTitleEnglish("Tokyo Revengers: Christmas Showdown");
+        when(animeCatalogEntryRepository.findBySlug("series-tokyo-revengers"))
+                .thenReturn(Optional.empty());
+        when(animeCatalogEntryRepository.findRouteCandidates(
+                eq("tokyo revengers"),
+                any(Pageable.class)
+        )).thenReturn(List.of(anime));
+
+        var result = service.findBySlug("series-tokyo-revengers");
+
+        assertThat(result).isNotNull();
+        assertThat(result.malId()).isEqualTo(42249);
+    }
+
+    @Test
+    void findBySlugKeepsUnknownRoutesAsNotFound() {
+        service = service();
+        AnimeCatalogEntry unrelated = anime(1, "mal-1", "Cowboy Bebop");
+        when(animeCatalogEntryRepository.findBySlug("series-this-title-does-not-exist"))
+                .thenReturn(Optional.empty());
+        when(animeCatalogEntryRepository.findRouteCandidates(
+                eq("this title does not exist"),
+                any(Pageable.class)
+        )).thenReturn(List.of(unrelated));
+
+        assertThat(service.findBySlug("series-this-title-does-not-exist")).isNull();
     }
 
     private AnimeCatalogService service() {

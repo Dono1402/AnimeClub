@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,6 +63,7 @@ public class AnimeCatalogService {
     private static final int IMAGE_COLOR_MAX_BYTES = 3 * 1024 * 1024;
     private static final int IMAGE_COLOR_MAX_REDIRECTS = 2;
     private static final int POSTER_BACKFILL_SIZE = 12;
+    private static final int ROUTE_CANDIDATE_LIMIT = 64;
     private static final double MAX_POSTER_ASPECT_RATIO = 0.9;
     private static final String WEEKLY_RANKING_SOURCE_ANILIST_TRENDING = "anilist-trending";
     private static final String LIST_SEPARATOR = "\n";
@@ -433,12 +435,93 @@ public class AnimeCatalogService {
     }
 
     public AnimeCatalogEntryResponse findBySlug(String slug) {
-        return animeCatalogEntryRepository.findBySlug(slug)
-                .map(entry -> {
-                    enrichReadEntries(List.of(entry));
-                    return toResponse(entry);
-                })
-                .orElse(null);
+        String cleanSlug = slug == null ? "" : slug.trim().toLowerCase(Locale.ROOT);
+        if (cleanSlug.isBlank() || cleanSlug.length() > 180) {
+            return null;
+        }
+
+        AnimeCatalogEntry entry = animeCatalogEntryRepository.findBySlug(cleanSlug)
+                .orElseGet(() -> findByRouteSlug(cleanSlug));
+        if (entry == null) {
+            return null;
+        }
+
+        enrichReadEntries(List.of(entry));
+        return toResponse(entry);
+    }
+
+    private AnimeCatalogEntry findByRouteSlug(String slug) {
+        String routeKey = canonicalRouteKey(slug.startsWith("series-") ? slug.substring(7) : slug);
+        if (routeKey.isBlank()) {
+            return null;
+        }
+
+        List<AnimeCatalogEntry> candidates = animeCatalogEntryRepository.findRouteCandidates(
+                routeKey.replace('-', ' '),
+                PageRequest.of(0, ROUTE_CANDIDATE_LIMIT)
+        );
+        for (int rank = 0; rank <= 3; rank++) {
+            for (AnimeCatalogEntry candidate : candidates) {
+                if (routeMatchRank(routeKey, candidate) == rank) {
+                    return candidate;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int routeMatchRank(String routeKey, AnimeCatalogEntry entry) {
+        List<String> titleKeys = new ArrayList<>();
+        titleKeys.add(canonicalRouteKey(entry.getTitle()));
+        titleKeys.add(canonicalRouteKey(entry.getTitleEnglish()));
+        titleKeys.add(canonicalRouteKey(entry.getTitleJapanese()));
+
+        int bestRank = Integer.MAX_VALUE;
+        for (String titleKey : titleKeys) {
+            if (titleKey.isBlank()) {
+                continue;
+            }
+            if (titleKey.equals(routeKey)) {
+                return 0;
+            }
+            if (titleKey.startsWith(routeKey + "-")) {
+                bestRank = Math.min(bestRank, 1);
+                continue;
+            }
+            if (routeKey.startsWith(titleKey + "-")) {
+                bestRank = Math.min(bestRank, 2);
+                continue;
+            }
+            if (containsAllRouteTokens(routeKey, titleKey)) {
+                bestRank = Math.min(bestRank, 3);
+            }
+        }
+
+        return bestRank;
+    }
+
+    private boolean containsAllRouteTokens(String routeKey, String titleKey) {
+        String[] routeTokens = routeKey.split("-");
+        if (routeTokens.length < 2) {
+            return false;
+        }
+
+        Set<String> titleTokens = new HashSet<>(List.of(titleKey.split("-")));
+        for (String token : routeTokens) {
+            if (token.length() > 1 && !titleTokens.contains(token)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String canonicalRouteKey(String value) {
+        return Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-+|-+$", "");
     }
 
     public String dominantImageColor(String imageUrl) {

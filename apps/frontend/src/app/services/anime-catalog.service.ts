@@ -13,6 +13,7 @@ import {
   startWith,
   switchMap,
   timer,
+  timeout,
   toArray,
 } from 'rxjs';
 
@@ -458,6 +459,16 @@ export class AnimeCatalogService {
       map((anime) => this.withSeasons(this.mapBackendAnime(anime))),
       catchError(() => this.getJikanAnimeById(id)),
     );
+  }
+
+  private getAnimeByRouteSlug(slug: string): Observable<PopularAnime | null> {
+    return this.http
+      .get<BackendAnimeCatalogEntry>(`${this.backendAnimeCatalogUrl}/slug/${encodeURIComponent(slug)}`)
+      .pipe(
+        timeout({ first: 5000 }),
+        map((anime) => this.withSeasons(this.mapBackendAnime(anime))),
+        catchError(() => of(null)),
+      );
   }
 
   getDominantImageColor(imageUrl: string): Observable<string | null> {
@@ -963,8 +974,12 @@ export class AnimeCatalogService {
       );
     }
 
-    return this.findAnimeBySearchSelection(normalizedSelection).pipe(
-      switchMap((anime) => (anime ? of(anime) : this.findPopularAnimeBySelection(normalizedSelection, 1, maxPages))),
+    if (normalizedSelection === MADOKA_MOVIE_COLLECTION_SLUG) {
+      return this.findAnimeBySearchSelection(normalizedSelection);
+    }
+
+    return this.getAnimeByRouteSlug(normalizedSelection).pipe(
+      switchMap((anime) => (anime ? this.findGroupedAnimeForDetail(anime) : of(null))),
     );
   }
 
