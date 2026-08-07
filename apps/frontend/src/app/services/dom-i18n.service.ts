@@ -5,17 +5,19 @@ import { LanguageService } from './language.service';
 const TEXT_TRANSLATIONS: Record<string, string> = {
   'Nouvelles sorties': 'New releases',
   'AnimeClub accueil': 'AnimeClub home',
-  'Nouvelle sortie simulcast': 'New simulcast release',
-  'Bienvenue dans le chaos': 'Welcome to chaos',
+  'Walpurgisnacht: Rising arrive bientôt': 'Walpurgisnacht: Rising is coming soon',
+  'Le voyage continue au-delà des souvenirs': 'The journey continues beyond memories',
   'La nuit commence vraiment': 'The night truly begins',
   "Monstres géants, unité d'élite": 'Giant monsters, elite unit',
   'La baston comme langage': 'Fighting as a language',
   'La sélection des attaquants': 'The strikers selection',
   "L'envers brutal des idoles": 'The brutal side of idols',
-  "Momo croit aux fantômes, Okarun croit aux extraterrestres. Leur pari déclenche une série d'affrontements surnaturels où l'humour, l'horreur et l'action se mélangent sans respirer.":
-    'Momo believes in ghosts, Okarun believes in aliens. Their bet triggers a string of supernatural clashes where humor, horror, and action collide at full speed.',
-  "Amnésique et transformé par magie, Caiman traque les sorciers avec Nikaido pour comprendre qui lui a volé son visage. Sale, violent, étrange et impossible à confondre.":
-    'Amnesiac and magically transformed, Caiman hunts sorcerers with Nikaido to discover who stole his face. Dirty, violent, strange, and impossible to mistake.',
+  "Après les événements de Rebellion, l'histoire de Madoka et Homura reprend dans un nouveau chapitre inédit. Le retour tant attendu des Puella Magi est annoncé au Japon pour le 28 août 2026.":
+    'After the events of Rebellion, Madoka and Homura return in a new chapter. The long-awaited return of the Puella Magi is scheduled for August 28, 2026 in Japan.',
+  '28 août 2026': 'August 28, 2026',
+  'Saison 2': 'Season 2',
+  'Frieren, Fern et Stark reprennent leur route vers le nord. Entre nouvelles rencontres et souvenirs laissés par Himmel, leur voyage révèle combien le temps transforme les liens et les promesses.':
+    'Frieren, Fern, and Stark resume their journey north. Through new encounters and memories left by Himmel, their travels reveal how deeply time transforms bonds and promises.',
   'Ko Yamori erre dans les rues pour fuir son quotidien et croise Nazuna, une vampire libre et imprévisible. Pour devenir comme elle, il devra comprendre ce que signifie tomber amoureux.':
     'Ko Yamori wanders the streets to escape his daily life and meets Nazuna, a free and unpredictable vampire. To become like her, he must understand what falling in love means.',
   "Kafka Hibino rêve de rejoindre les forces anti-kaiju. Après un incident impossible, il obtient une puissance monstrueuse qui pourrait faire de lui l'arme la plus dangereuse du front.":

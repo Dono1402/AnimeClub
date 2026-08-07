@@ -118,24 +118,24 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   readonly heroSlides: HeroSlide[] = [
     {
-      title: 'DAN DA DAN',
-      subtitle: 'Nouvelle sortie simulcast',
+      title: 'MADOKA MAGICA',
+      subtitle: 'Walpurgisnacht: Rising arrive bientôt',
       synopsis:
-        "Momo croit aux fantômes, Okarun croit aux extraterrestres. Leur pari déclenche une série d'affrontements surnaturels où l'humour, l'horreur et l'action se mélangent sans respirer.",
-      image: 'assets/home-hero/dan-da-dan-hero.jpg',
-      link: '/animes/mal-57334',
-      tags: ['VO', 'Simulcast', 'HD'],
-      copyright: '© Yukinobu Tatsu / Shueisha',
+        "Après les événements de Rebellion, l'histoire de Madoka et Homura reprend dans un nouveau chapitre inédit. Le retour tant attendu des Puella Magi est annoncé au Japon pour le 28 août 2026.",
+      image: 'assets/home-hero/madoka-walpurgisnacht-rising-hero.jpg',
+      link: '/animes/mal-48820',
+      tags: ['Film', 'Suite', '28 août 2026'],
+      copyright: '© Magica Quartet / Aniplex, Madoka Project',
     },
     {
-      title: 'Dorohedoro',
-      subtitle: 'Bienvenue dans le chaos',
+      title: 'FRIEREN',
+      subtitle: 'Le voyage continue au-delà des souvenirs',
       synopsis:
-        "Amnésique et transformé par magie, Caiman traque les sorciers avec Nikaido pour comprendre qui lui a volé son visage. Sale, violent, étrange et impossible à confondre.",
-      image: 'assets/home-hero/dorohedoro-hero.jpg',
-      link: '/animes/mal-38668',
-      tags: ['VO', '16+'],
-      copyright: '© Q Hayashida / Shogakukan',
+        "Frieren, Fern et Stark reprennent leur route vers le nord. Entre nouvelles rencontres et souvenirs laissés par Himmel, leur voyage révèle combien le temps transforme les liens et les promesses.",
+      image: 'assets/home-hero/frieren-season-2-hero.jpg',
+      link: '/animes/mal-59978',
+      tags: ['Saison 2', 'Fantasy', '2026'],
+      copyright: '© Kanehito Yamada, Tsukasa Abe / Shogakukan',
     },
     {
       title: 'Call of the Night',
